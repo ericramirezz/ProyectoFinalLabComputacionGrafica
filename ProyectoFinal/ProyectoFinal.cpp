@@ -1,7 +1,7 @@
-// Medina Villa Samuel
-// 320249538
-// Previo#12
-// Fecha de entrega: 27 de abril de 2026
+// Medina Villa Samuel 320249538
+// Eric Ramírez
+// Proyecto Final
+// Fecha de entrega: 13 de mayo de 2026
 
 
 
@@ -274,9 +274,27 @@ int main()
 	Shader lampShader("Shader/lamp.vs", "Shader/lamp.frag");
 
 
-	//models
+	//Modelos
+
+	// Modelos del puente
 	Model Puente((char*)"Models/Puente/Puente.obj");
 	
+
+	// Modelo del perro robot
+
+	Model perroCuerpo((char*)"Models/perroRobot/cuerpo.obj");
+	Model perroPDIU((char*)"Models/perroRobot/patadelanteraIzUp.obj");
+	Model perroPDID((char*)"Models/perroRobot/patadelanteraIzDown.obj");
+	Model perroPDDU((char*)"Models/perroRobot/patadelanteraDerUp.obj");
+	Model perroPDDD((char*)"Models/perroRobot/patadelanteraDerDown.obj");
+	Model perroPTIU((char*)"Models/perroRobot/patatraseraIzUp.obj");
+	Model perroPTID((char*)"Models/perroRobot/patatraseraIzDown.obj");
+	Model perroPTDU((char*)"Models/perroRobot/patatraseraDerUp.obj");
+	Model perroPTDD((char*)"Models/perroRobot/patatraseraDerDown.obj");
+
+
+
+
 
 	//KeyFrames
 	for (int i = 0; i < MAX_FRAMES; i++)
@@ -421,6 +439,25 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 		Puente.Draw(lightingShader);
+
+
+		// Perro robot
+
+		// Perro Robot - misma transformacion que el puente
+		model = glm::mat4(1);
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
+		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		perroCuerpo.Draw(lightingShader);
+		perroPDIU.Draw(lightingShader);
+		perroPDID.Draw(lightingShader);
+		perroPDDU.Draw(lightingShader);
+		perroPDDD.Draw(lightingShader);
+		perroPTIU.Draw(lightingShader);
+		perroPTID.Draw(lightingShader);
+		perroPTDU.Draw(lightingShader);
+		perroPTDD.Draw(lightingShader);
+
 
 		
 
