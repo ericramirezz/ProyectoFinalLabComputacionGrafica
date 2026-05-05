@@ -424,7 +424,7 @@ int main()
 	vector  < const GLchar*> faces;
 	faces.push_back("Skybox/left.jpg");
 	faces.push_back("Skybox/right.jpg");
-	/*faces.push_back("Skybox/top.jpg");*/
+	faces.push_back("Skybox/top.jpg");
 	faces.push_back("Skybox/bottom.jpg");
 	faces.push_back("Skybox/front.jpg");
 	faces.push_back("Skybox/back.jpg");
