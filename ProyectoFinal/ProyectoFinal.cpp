@@ -422,12 +422,12 @@ int main()
 	//Load textures del skybox
 
 	vector  < const GLchar*> faces;
-	faces.push_back("Skybox/right.jpg");
 	faces.push_back("Skybox/left.jpg");
-	faces.push_back("Skybox/top.jpg");
-	faces.push_back("Skybox/bottom.jpg");
-	faces.push_back("Skybox/back.jpg");
 	faces.push_back("Skybox/right.jpg");
+	/*faces.push_back("Skybox/top.jpg");*/
+	faces.push_back("Skybox/bottom.jpg");
+	faces.push_back("Skybox/front.jpg");
+	faces.push_back("Skybox/back.jpg");
 
 	GLuint cubemapTexture = TextureLoading::LoadCubemap(faces);
 
@@ -584,12 +584,19 @@ int main()
 
 		//Dibujo del skybox
 
+
 		glDepthFunc(GL_LEQUAL);
 		skyboxshader.Use();
-		view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+
+		view = camera.GetViewMatrix();
 		glUniformMatrix4fv(glGetUniformLocation(skyboxshader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(glGetUniformLocation(skyboxshader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
+		// Modelo para posicionar y escalar la caja alrededor del puente
+		model = glm::mat4(1);
+		model = glm::translate(model, glm::vec3(-0.0413f, 0.6800f, -2.9475f));// Centro del puente
+		model = glm::scale(model, glm::vec3(1.4619f, 0.1850f, 0.4875f));    // Imagenes al tamaño del puente
+		glUniformMatrix4fv(glGetUniformLocation(skyboxshader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
 		glBindVertexArray(skyboxVAO);
 		glActiveTexture(GL_TEXTURE1);
@@ -597,6 +604,20 @@ int main()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 		glDepthFunc(GL_LESS);
+
+		///*glDepthFunc(GL_LEQUAL);
+		//skyboxshader.Use();
+		//view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+		//glUniformMatrix4fv(glGetUniformLocation(skyboxshader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		//glUniformMatrix4fv(glGetUniformLocation(skyboxshader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+
+		//glBindVertexArray(skyboxVAO);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		//glBindVertexArray(0);
+		//glDepthFunc(GL_LESS);*/
 
 
 		// Swap the screen buffers
