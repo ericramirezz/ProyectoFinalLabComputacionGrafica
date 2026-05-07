@@ -53,6 +53,8 @@ bool firstMouse = true;
 // Light attributes
 glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
 bool active;
+// Variable para el cambio de modo dia/noche L
+bool modoDia = true;
 
 // Positions of the point lights
 glm::vec3 pointLightPositions[] = {
@@ -431,7 +433,7 @@ int main()
 
 	GLuint cubemapTexture = TextureLoading::LoadCubemap(faces);
 
-	// Skybox exterior (ambiente de fondo)
+	// Skybox exterior DIA
 	vector<const GLchar*> facesExterior;
 	facesExterior.push_back("SkyboxExterior/right.jpg");
 	facesExterior.push_back("SkyboxExterior/left.jpg");
@@ -440,7 +442,30 @@ int main()
 	facesExterior.push_back("SkyboxExterior/front.jpg");
 	facesExterior.push_back("SkyboxExterior/back.jpg");
 
+
+
+	// Skybox interior NOCHE
+	vector<const GLchar*> facesNoche;
+	facesNoche.push_back("SkyboxNoche/left.jpg");
+	facesNoche.push_back("SkyboxNoche/right.jpg");
+	facesNoche.push_back("SkyboxNoche/top.jpg");
+	facesNoche.push_back("SkyboxNoche/bottom.jpg");
+	facesNoche.push_back("SkyboxNoche/front.jpg");
+	facesNoche.push_back("SkyboxNoche/back.jpg");
+
+	GLuint cubemapTextureNoche = TextureLoading::LoadCubemap(facesNoche);
+
+	// Skybox exterior NOCHE
+	vector<const GLchar*> facesExteriorNoche;
+	facesExteriorNoche.push_back("SkyboxExteriorNoche/right.jpg");
+	facesExteriorNoche.push_back("SkyboxExteriorNoche/left.jpg");
+	facesExteriorNoche.push_back("SkyboxExteriorNoche/top.jpg");
+	facesExteriorNoche.push_back("SkyboxExteriorNoche/bottom.jpg");
+	facesExteriorNoche.push_back("SkyboxExteriorNoche/back.jpg");
+	facesExteriorNoche.push_back("SkyboxExteriorNoche/front.jpg");
+
 	GLuint cubemapTextureExterior = TextureLoading::LoadCubemap(facesExterior);
+	GLuint cubemapTextureExteriorNoche = TextureLoading::LoadCubemap(facesExteriorNoche);
 
 	// Restaurar el binding del cubemap interior
 	glActiveTexture(GL_TEXTURE1);
@@ -486,7 +511,7 @@ int main()
 
 		glBindVertexArray(skyboxVAO);
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextureExterior);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, modoDia ? cubemapTextureExterior : cubemapTextureExteriorNoche);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 		glDepthMask(GL_TRUE);
@@ -637,7 +662,7 @@ int main()
 
 		glBindVertexArray(skyboxVAO);
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, modoDia ? cubemapTexture : cubemapTextureNoche);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 		glDepthFunc(GL_LESS);
@@ -803,35 +828,40 @@ void DoMovement()
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
 
+	//if (keys[GLFW_KEY_L])
+	//{
+	//	if (play == false && (FrameIndex > 1))
+	//	{
+
+	//		resetElements();
+	//		//First Interpolation				
+	//		interpolation();
+
+	//		play = true;
+	//		playIndex = 0;
+	//		i_curr_steps = 0;
+	//	}
+	//	else
+	//	{
+	//		play = false;
+	//	}
+
+	//}
+
+	//if (keys[GLFW_KEY_K])
+	//{
+	//	if (FrameIndex < MAX_FRAMES)
+	//	{
+	//		saveFrame();
+	//	}
+
+	//}
+
+
 	if (keys[GLFW_KEY_L])
 	{
-		if (play == false && (FrameIndex > 1))
-		{
-
-			resetElements();
-			//First Interpolation				
-			interpolation();
-
-			play = true;
-			playIndex = 0;
-			i_curr_steps = 0;
-		}
-		else
-		{
-			play = false;
-		}
-
+		modoDia = !modoDia;
 	}
-
-	if (keys[GLFW_KEY_K])
-	{
-		if (FrameIndex < MAX_FRAMES)
-		{
-			saveFrame();
-		}
-
-	}
-
 
 
 	if (GLFW_KEY_ESCAPE == key && GLFW_PRESS == action)
