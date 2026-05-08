@@ -1,5 +1,5 @@
 // Medina Villa Samuel 320249538
-// Eric Ramírez
+// Eric Ramírez 423095203
 // Proyecto Final
 // Fecha de entrega: 13 de mayo de 2026
 
@@ -297,6 +297,29 @@ int main()
 	Model perroPTID((char*)"Models/perroRobot/patatraseraIzDown.obj");
 	Model perroPTDU((char*)"Models/perroRobot/patatraseraDerUp.obj");
 	Model perroPTDD((char*)"Models/perroRobot/patatraseraDerDown.obj");
+
+
+	//mamparas basicas
+	//Model perroPDIU((char*)"Models/.obj");
+	//Model perroPDID((char*)"Models/.obj");
+	//Model perroPDDU((char*)"Models/.obj");
+	//Model perroPDDD((char*)"Models/.obj");
+	//Model perroPTIU((char*)"Models/.obj");
+	//Model perroPTID((char*)"Models/.obj");
+	//Model perroPTDU((char*)"Models/.obj");
+	//Model perroPTDD((char*)"Models/.obj");
+
+
+
+	//stands de empresas
+	Model stand_pag((char*)"Models/stands_1/p&g.obj");
+	Model stand_amazon((char*)"Models/stands_1/amazon.obj");
+	Model stand_oracle((char*)"Models/stands_1/oracle.obj");
+
+	////stands de asociaciones
+	Model stand_crofi((char*)"Models/stands_1/crofi.obj");
+	Model stand_aero((char*)"Models/stands_1/aero.obj");
+	Model stand_siafi((char*)"Models/stands_1/siafi.obj");
 
 
 
@@ -615,7 +638,12 @@ int main()
 		perroPTID.Draw(lightingShader);
 		perroPTDU.Draw(lightingShader);
 		perroPTDD.Draw(lightingShader);
-
+		stand_pag.Draw(lightingShader);
+		stand_amazon.Draw(lightingShader);
+		stand_oracle.Draw(lightingShader);
+		stand_crofi.Draw(lightingShader);
+		stand_aero.Draw(lightingShader);
+		stand_siafi.Draw(lightingShader);
 
 		
 
