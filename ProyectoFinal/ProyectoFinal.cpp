@@ -130,8 +130,65 @@ bool animExpositor = true;
 
 
 
-//KeyFrames
-float dogPosX, dogPosY, dogPosZ;
+bool animVisitante = true;
+
+// Posición y rotación del visitante
+float visPosX = 0.0f;   // posición en el eje del pasillo
+float visRotY = 0.0f;    // rotación del cuerpo 
+
+// Articulaciones
+float visMusloDer = 0.0f;
+float visMusloIzq = 0.0f;
+float visPantDer = 0.0f;
+float visPantIzq = 0.0f;
+float visBrazoDer = 0.0f;
+float visBrazoIzq = 0.0f;
+float visCabeza = 0.0f;
+
+// Sistema de KeyFrames del visitante
+#define VIS_MAX_FRAMES 22
+int vis_i_max_steps = 250;
+int vis_i_curr_steps = 0;
+
+typedef struct _vis_frame {
+	float visPosX;       float visPosXInc;
+	float visRotY;       float visRotYInc;
+	float visMusloDer;   float visMusloDerInc;
+	float visMusloIzq;   float visMusloIzqInc;
+	float visPantDer;    float visPantDerInc;
+	float visPantIzq;    float visPantIzqInc;
+	float visBrazoDer;   float visBrazoDerInc;
+	float visBrazoIzq;   float visBrazoIzqInc;
+	float visCabeza;     float visCabezaInc;
+} VIS_FRAME;
+
+VIS_FRAME VisKF[VIS_MAX_FRAMES];
+int visPlayIndex = 0;
+bool visPlay = false;
+
+void visResetElements(void) {
+	visPosX = VisKF[0].visPosX;
+	visRotY = VisKF[0].visRotY;
+	visMusloDer = VisKF[0].visMusloDer;
+	visMusloIzq = VisKF[0].visMusloIzq;
+	visPantDer = VisKF[0].visPantDer;
+	visPantIzq = VisKF[0].visPantIzq;
+	visBrazoDer = VisKF[0].visBrazoDer;
+	visBrazoIzq = VisKF[0].visBrazoIzq;
+	visCabeza = VisKF[0].visCabeza;
+}
+
+void visInterpolation(void) {
+	VisKF[visPlayIndex].visPosXInc = (VisKF[visPlayIndex + 1].visPosX - VisKF[visPlayIndex].visPosX) / vis_i_max_steps;
+	VisKF[visPlayIndex].visRotYInc = (VisKF[visPlayIndex + 1].visRotY - VisKF[visPlayIndex].visRotY) / vis_i_max_steps;
+	VisKF[visPlayIndex].visMusloDerInc = (VisKF[visPlayIndex + 1].visMusloDer - VisKF[visPlayIndex].visMusloDer) / vis_i_max_steps;
+	VisKF[visPlayIndex].visMusloIzqInc = (VisKF[visPlayIndex + 1].visMusloIzq - VisKF[visPlayIndex].visMusloIzq) / vis_i_max_steps;
+	VisKF[visPlayIndex].visPantDerInc = (VisKF[visPlayIndex + 1].visPantDer - VisKF[visPlayIndex].visPantDer) / vis_i_max_steps;
+	VisKF[visPlayIndex].visPantIzqInc = (VisKF[visPlayIndex + 1].visPantIzq - VisKF[visPlayIndex].visPantIzq) / vis_i_max_steps;
+	VisKF[visPlayIndex].visBrazoDerInc = (VisKF[visPlayIndex + 1].visBrazoDer - VisKF[visPlayIndex].visBrazoDer) / vis_i_max_steps;
+	VisKF[visPlayIndex].visBrazoIzqInc = (VisKF[visPlayIndex + 1].visBrazoIzq - VisKF[visPlayIndex].visBrazoIzq) / vis_i_max_steps;
+	VisKF[visPlayIndex].visCabezaInc = (VisKF[visPlayIndex + 1].visCabeza - VisKF[visPlayIndex].visCabeza) / vis_i_max_steps;
+}
 
 
 
@@ -242,6 +299,17 @@ int main()
 	Model presentadorCabeza((char*)"Models/Presentador/cabeza.obj");
 	Model presentadorAntebrazo((char*)"Models/Presentador/antebrazo.obj");
 	Model presentadorMano((char*)"Models/Presentador/mano.obj");
+
+
+	// Modelo del visitante
+	Model visCabezaM((char*)"Models/Visitante/cabeza.obj");
+	Model visTorso((char*)"Models/Visitante/torso.obj");
+	Model visBrazoDerM((char*)"Models/Visitante/brazoDer.obj");
+	Model visBrazoIzqM((char*)"Models/Visitante/brazoIzq.obj");
+	Model visMusloDerM((char*)"Models/Visitante/musloDer.obj");
+	Model visMusloIzqM((char*)"Models/Visitante/musloIzq.obj");
+	Model visPantDerM((char*)"Models/Visitante/pantorillaDer.obj");
+	Model visPantIzqM((char*)"Models/Visitante/pantorillaIzq.obj");
 
 
 
@@ -402,6 +470,42 @@ int main()
 
 	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 100.0f);
 
+
+	// Valores de los KeyFrames
+	
+	// IDA: 10 pasos para recorrer el pasillo
+	//                    posX     rotY    mDer   mIzq   pDer   pIzq   bDer   bIzq   cab
+	VisKF[0] = { -250.0f, 0,  0.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
+	VisKF[1] = { -220.0f, 0,  0.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
+	VisKF[2] = { -185.0f, 0,  0.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
+	VisKF[3] = { -150.0f, 0,  0.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
+	VisKF[4] = { -115.0f, 0,  0.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
+	VisKF[5] = { -80.0f, 0,  0.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
+	VisKF[6] = { -45.0f, 0,  0.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
+	VisKF[7] = { -10.0f, 0,  0.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
+	VisKF[8] = { 30.0f, 0,  0.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
+	VisKF[9] = { 80.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0,  0.0f, 0 };
+	VisKF[10] = { 80.0f, 0, -75.0f, 0,  0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0, -15.0f, 0 };
+	VisKF[11] = { 80.0f, 0, -75.0f, 0,  0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0, -15.0f, 0 };
+	VisKF[12] = { 80.0f, 0,  75.0f, 0,  0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0,  15.0f, 0 };
+	VisKF[13] = { 80.0f, 0,  75.0f, 0,  0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0,  15.0f, 0 };
+	VisKF[14] = { 80.0f, 0, 180.0f, 0,  0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0,   0.0f, 0 };
+	VisKF[15] = { 40.0f, 0, 180.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
+	VisKF[16] = { -5.0f, 0, 180.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
+	VisKF[17] = { -50.0f, 0, 180.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
+	VisKF[18] = { -100.0f, 0, 180.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
+	VisKF[19] = { -155.0f, 0, 180.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
+	VisKF[20] = { -205.0f, 0, 180.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
+	VisKF[21] = { -250.0f, 0, 360.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
+
+
+
+	visResetElements();
+	visPlay = true;
+	visPlayIndex = 0;
+	vis_i_curr_steps = 0;
+	visInterpolation();
+
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -529,7 +633,6 @@ int main()
 
 		// Perro robot
 
-		// Perro Robot - misma transformacion que el puente
 		model = glm::mat4(1);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
 		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
@@ -551,16 +654,16 @@ int main()
 		stand_siafi.Draw(lightingShader);
 
 
-		// ========== PRESENTADOR ==========
+		///////// PRESENTADOR //////////
 		glm::mat4 modelPres = glm::mat4(1);
 		modelPres = glm::translate(modelPres, glm::vec3(0.0f, 0.0f, -3.0f));
 		modelPres = glm::scale(modelPres, glm::vec3(0.005f, 0.005f, 0.005f));
 
-		// Cuerpo (estático)
+		// Cuerpo 
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPres));
 		presentadorCuerpo.Draw(lightingShader);
 
-		// Antebrazo - se mueve igual que la mano pero más lento
+		// Antebrazo 
 		glm::mat4 antebrazoMat = modelPres;
 		antebrazoMat = glm::translate(antebrazoMat, glm::vec3(-16.23f, 124.96f, -13.10f));
 		antebrazoMat = glm::rotate(antebrazoMat, glm::radians(expositorRotAntebrazo), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -569,7 +672,7 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(antebrazoMat));
 		presentadorAntebrazo.Draw(lightingShader);
 
-		// Cabeza - gira en el cuello
+		// Cabeza 
 		glm::mat4 cabezaMat = modelPres;
 		cabezaMat = glm::translate(cabezaMat, glm::vec3(-13.19f, 126.10f, -18.28f));
 		cabezaMat = glm::rotate(cabezaMat, glm::radians(expositorRotCabeza), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -577,13 +680,105 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(cabezaMat));
 		presentadorCabeza.Draw(lightingShader);
 
-		// Mano - se agita en la muñeca
+		// Mano 
 		glm::mat4 manoMat = antebrazoMat;
 		manoMat = glm::translate(manoMat, glm::vec3(-13.99f, 129.99f, -9.76f));
 		manoMat = glm::rotate(manoMat, glm::radians(expositorRotMano), glm::vec3(0.0f, 1.0f, 0.0f));
 		manoMat = glm::translate(manoMat, glm::vec3(13.99f, -129.99f, 9.76f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(manoMat));
 		presentadorMano.Draw(lightingShader);
+
+		////////////////////////////////////////////
+
+
+
+		///////// VISITANTE CAMINANDO //////////
+		{
+			
+			float sc = 0.005f;
+			glm::vec3 offset(0.0f, 0.0f, -3.0f);
+
+			
+			glm::vec3 pivCuello(-0.40f, 126.5f, 22.77f);
+			glm::vec3 pivHombroDer(-1.10f, 126.0f, 21.2f);
+			glm::vec3 pivHombroIzq(-1.02f, 126.0f, 24.5f);
+			glm::vec3 pivCaderaDer(-0.12f, 120.0f, 21.46f);
+			glm::vec3 pivCaderaIzq(-0.07f, 120.0f, 24.19f);
+			glm::vec3 pivRodillaDer(-0.42f, 111.0f, 21.21f);
+			glm::vec3 pivRodillaIzq(-0.46f, 107.8f, 24.32f);
+
+
+			glm::mat4 visBase = glm::mat4(1);
+			visBase = glm::translate(visBase, offset);
+			visBase = glm::scale(visBase, glm::vec3(sc));
+			visBase = glm::translate(visBase, glm::vec3(visPosX, 0.0f, 0.0f));
+			visBase = glm::translate(visBase, glm::vec3(-0.40f, 99.93f, 22.77f));
+			visBase = glm::rotate(visBase, glm::radians(visRotY + 180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+			visBase = glm::translate(visBase, glm::vec3(0.40f, -99.93f, -22.77f));
+
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(visBase));
+			visTorso.Draw(lightingShader);
+
+			// CABEZA 
+			glm::mat4 matCab = visBase;
+			matCab = glm::translate(matCab, pivCuello);
+			matCab = glm::rotate(matCab, glm::radians(visCabeza), glm::vec3(0.0f, 1.0f, 0.0f));
+			matCab = glm::translate(matCab, -pivCuello);
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matCab));
+			visCabezaM.Draw(lightingShader);
+
+			// BRAZO DERECHO 
+			glm::mat4 matBDer = visBase;
+			matBDer = glm::translate(matBDer, pivHombroDer);
+			matBDer = glm::rotate(matBDer, glm::radians(visBrazoDer), glm::vec3(0.0f, 0.0f, 1.0f));
+			matBDer = glm::translate(matBDer, -pivHombroDer);
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matBDer));
+			visBrazoDerM.Draw(lightingShader);
+
+			// BRAZO IZQUIERDO 
+			glm::mat4 matBIzq = visBase;
+			matBIzq = glm::translate(matBIzq, pivHombroIzq);
+			matBIzq = glm::rotate(matBIzq, glm::radians(visBrazoIzq), glm::vec3(0.0f, 0.0f, 1.0f));
+			matBIzq = glm::translate(matBIzq, -pivHombroIzq);
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matBIzq));
+			visBrazoIzqM.Draw(lightingShader);
+
+			// MUSLO DERECHO 
+			glm::mat4 matMDer = visBase;
+			matMDer = glm::translate(matMDer, pivCaderaDer);
+			matMDer = glm::rotate(matMDer, glm::radians(visMusloDer), glm::vec3(0.0f, 0.0f, 1.0f));
+			matMDer = glm::translate(matMDer, -pivCaderaDer);
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matMDer));
+			visMusloDerM.Draw(lightingShader);
+
+			// PANTORRILLA DERECHA 
+			glm::mat4 matPDer = matMDer; // hereda del muslo
+			matPDer = glm::translate(matPDer, pivRodillaDer);
+			matPDer = glm::rotate(matPDer, glm::radians(visPantDer), glm::vec3(0.0f, 0.0f, 1.0f));
+			matPDer = glm::translate(matPDer, -pivRodillaDer);
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matPDer));
+			visPantDerM.Draw(lightingShader);
+
+			// MUSLO IZQUIERDO 
+			glm::mat4 matMIzq = visBase;
+			matMIzq = glm::translate(matMIzq, pivCaderaIzq);
+			matMIzq = glm::rotate(matMIzq, glm::radians(visMusloIzq), glm::vec3(0.0f, 0.0f, 1.0f));
+			matMIzq = glm::translate(matMIzq, -pivCaderaIzq);
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matMIzq));
+			visMusloIzqM.Draw(lightingShader);
+
+			// PANTORRILLA IZQUIERDA 
+			glm::mat4 matPIzq = matMIzq; // hereda del muslo
+			matPIzq = glm::translate(matPIzq, pivRodillaIzq);
+			matPIzq = glm::rotate(matPIzq, glm::radians(visPantIzq), glm::vec3(0.0f, 0.0f, 1.0f));
+			matPIzq = glm::translate(matPIzq, -pivRodillaIzq);
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matPIzq));
+			visPantIzqM.Draw(lightingShader);
+		}
+		////////////////////////////////////////////
+		
+
+
 
 
 
@@ -775,6 +970,20 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		}
 	}
 
+	// Tecla para controlar la animacion del visitante
+	if (key == GLFW_KEY_V && action == GLFW_PRESS)
+	{
+		animVisitante = !animVisitante;
+		visPlay = animVisitante;
+		if (!animVisitante) {
+			visPlayIndex = 0;
+			vis_i_curr_steps = 0;
+			visResetElements();
+			visInterpolation();
+		}
+		printf("Animacion Visitante: %s\n", animVisitante ? "ON" : "OFF");
+	}
+
 	if (keys[GLFW_KEY_SPACE])
 	{
 		active = !active;
@@ -792,13 +1001,38 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 
 }
 void Animation() {
-	// ========== ANIMACIÓN PRESENTADOR (continua) ==========
+	// ANIMACIÓN PRESENTADOR 
 	if (animExpositor)
 	{
 		expositorTiempo += deltaTime;
 		expositorRotMano = 25.0f * sin(expositorTiempo * 5.0f );
 		expositorRotCabeza = 15.0f * sin(expositorTiempo * 1.5f);
 		expositorRotAntebrazo = 20.0f * sin(expositorTiempo * 5.0f);
+	}
+
+	// ANIMACIÓN VISITANTE POR KEYFRAMES
+	if (visPlay) {
+		if (vis_i_curr_steps >= vis_i_max_steps) {
+			visPlayIndex++;
+			if (visPlayIndex > VIS_MAX_FRAMES - 2) {
+				visPlayIndex = 0;
+				visResetElements();
+			}
+			vis_i_curr_steps = 0;
+			visInterpolation();
+		}
+		else {
+			visPosX += VisKF[visPlayIndex].visPosXInc;
+			visRotY += VisKF[visPlayIndex].visRotYInc;
+			visMusloDer += VisKF[visPlayIndex].visMusloDerInc;
+			visMusloIzq += VisKF[visPlayIndex].visMusloIzqInc;
+			visPantDer += VisKF[visPlayIndex].visPantDerInc;
+			visPantIzq += VisKF[visPlayIndex].visPantIzqInc;
+			visBrazoDer += VisKF[visPlayIndex].visBrazoDerInc;
+			visBrazoIzq += VisKF[visPlayIndex].visBrazoIzqInc;
+			visCabeza += VisKF[visPlayIndex].visCabezaInc;
+			vis_i_curr_steps++;
+		}
 	}
 
 }
