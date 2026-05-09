@@ -111,9 +111,7 @@ float vertices[] = {
 
 glm::vec3 Light1 = glm::vec3(0);
 //Anim
-float rotBall = 0.0f;
-float rotDog = 0.0f;
-int dogAnim = 0;
+
 float FLegL = 0.0f; // Front Left
 float FLegR = 0.0f; // Front Right
 float RLegL = 0.0f; // Rear Left
@@ -123,102 +121,20 @@ float tail = 0.0f;
 
 float IncliDog = 0.0f;
 
+//  ANIMACIÓN PRESENTADOR 
+float expositorRotMano = 0.0f;
+float expositorRotAntebrazo = 0.0f;
+float expositorRotCabeza = 0.0f;
+float expositorTiempo = 0.0f;
+bool animExpositor = true;
+
 
 
 //KeyFrames
 float dogPosX, dogPosY, dogPosZ;
 
-#define MAX_FRAMES 9
-int i_max_steps = 190;
-int i_curr_steps = 0;
-typedef struct _frame {
-	float rotDog;
-	float rotDogInc;
-	float dogPosX;
-	float dogPosY;
-	float dogPosZ;
-	float incX;
-	float incY;
-	float incZ;
-	float head;
-	float headInc;
-
-	// NUEVAS VARIABLES
-	float FLegL, FLegLInc;
-	float FLegR, FLegRInc;
-	float RLegL, RLegLInc;
-	float RLegR, RLegRInc;
-	float tail, tailInc;
-	float IncliDog, IncliDogInc;
-} FRAME;
-
-FRAME KeyFrame[MAX_FRAMES];
-int FrameIndex = 0;			//introducir datos
-bool play = false;
-int playIndex = 0;
-
-void saveFrame(void)
-{
-
-	printf("frameindex %d\n", FrameIndex);
-
-	KeyFrame[FrameIndex].dogPosX = dogPosX;
-	KeyFrame[FrameIndex].dogPosY = dogPosY;
-	KeyFrame[FrameIndex].dogPosZ = dogPosZ;
-
-	KeyFrame[FrameIndex].FLegL = FLegL;
-	KeyFrame[FrameIndex].FLegR = FLegR;
-	KeyFrame[FrameIndex].RLegL = RLegL;
-	KeyFrame[FrameIndex].RLegR = RLegR;
-	KeyFrame[FrameIndex].tail = tail;
-
-	KeyFrame[FrameIndex].rotDog = rotDog;
-	KeyFrame[FrameIndex].head = head;
-
-	KeyFrame[FrameIndex].IncliDog = IncliDog;
 
 
-	FrameIndex++;
-}
-
-void resetElements(void)
-{
-	dogPosX = KeyFrame[0].dogPosX;
-	dogPosY = KeyFrame[0].dogPosY;
-	dogPosZ = KeyFrame[0].dogPosZ;
-	head = KeyFrame[0].head;
-
-	FLegL = KeyFrame[0].FLegL;
-	FLegR = KeyFrame[0].FLegR;
-	RLegL = KeyFrame[0].RLegL;
-	RLegR = KeyFrame[0].RLegR;
-	tail = KeyFrame[0].tail;
-	IncliDog = KeyFrame[0].IncliDog;
-
-	rotDog = KeyFrame[0].rotDog;
-
-
-}
-void interpolation(void)
-{
-
-	KeyFrame[playIndex].incX = (KeyFrame[playIndex + 1].dogPosX - KeyFrame[playIndex].dogPosX) / i_max_steps;
-	KeyFrame[playIndex].incY = (KeyFrame[playIndex + 1].dogPosY - KeyFrame[playIndex].dogPosY) / i_max_steps;
-	KeyFrame[playIndex].incZ = (KeyFrame[playIndex + 1].dogPosZ - KeyFrame[playIndex].dogPosZ) / i_max_steps;
-	KeyFrame[playIndex].headInc = (KeyFrame[playIndex + 1].head - KeyFrame[playIndex].head) / i_max_steps;
-
-	KeyFrame[playIndex].FLegLInc = (KeyFrame[playIndex + 1].FLegL - KeyFrame[playIndex].FLegL) / i_max_steps;
-	KeyFrame[playIndex].FLegRInc = (KeyFrame[playIndex + 1].FLegR - KeyFrame[playIndex].FLegR) / i_max_steps;
-	KeyFrame[playIndex].RLegLInc = (KeyFrame[playIndex + 1].RLegL - KeyFrame[playIndex].RLegL) / i_max_steps;
-	KeyFrame[playIndex].RLegRInc = (KeyFrame[playIndex + 1].RLegR - KeyFrame[playIndex].RLegR) / i_max_steps;
-	KeyFrame[playIndex].tailInc = (KeyFrame[playIndex + 1].tail - KeyFrame[playIndex].tail) / i_max_steps;
-
-	KeyFrame[playIndex].IncliDogInc = (KeyFrame[playIndex + 1].IncliDog - KeyFrame[playIndex].IncliDog) / i_max_steps;
-
-
-	KeyFrame[playIndex].rotDogInc = (KeyFrame[playIndex + 1].rotDog - KeyFrame[playIndex].rotDog) / i_max_steps;
-
-}
 
 
 
@@ -321,24 +237,13 @@ int main()
 	Model stand_aero((char*)"Models/stands_1/aero.obj");
 	Model stand_siafi((char*)"Models/stands_1/siafi.obj");
 
+	// Modelo del presentador
+	Model presentadorCuerpo((char*)"Models/Presentador/cuerpo.obj");
+	Model presentadorCabeza((char*)"Models/Presentador/cabeza.obj");
+	Model presentadorAntebrazo((char*)"Models/Presentador/antebrazo.obj");
+	Model presentadorMano((char*)"Models/Presentador/mano.obj");
 
 
-
-
-	//KeyFrames
-	for (int i = 0; i < MAX_FRAMES; i++)
-	{
-		KeyFrame[i].dogPosX = 0;
-		KeyFrame[i].dogPosY = 0;
-		KeyFrame[i].dogPosZ = 0;
-		KeyFrame[i].incX = 0;
-		KeyFrame[i].incY = 0;
-		KeyFrame[i].incZ = 0;
-		KeyFrame[i].rotDog = 0;
-		KeyFrame[i].rotDogInc = 0;
-		KeyFrame[i].head = 0;
-		KeyFrame[i].headInc = 0;
-	}
 
 	// Definicion de la caja 
 	GLfloat skyboxVertices[] = {
@@ -645,7 +550,45 @@ int main()
 		stand_aero.Draw(lightingShader);
 		stand_siafi.Draw(lightingShader);
 
-		
+
+		// ========== PRESENTADOR ==========
+		glm::mat4 modelPres = glm::mat4(1);
+		modelPres = glm::translate(modelPres, glm::vec3(0.0f, 0.0f, -3.0f));
+		modelPres = glm::scale(modelPres, glm::vec3(0.005f, 0.005f, 0.005f));
+
+		// Cuerpo (estático)
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPres));
+		presentadorCuerpo.Draw(lightingShader);
+
+		// Antebrazo - se mueve igual que la mano pero más lento
+		glm::mat4 antebrazoMat = modelPres;
+		antebrazoMat = glm::translate(antebrazoMat, glm::vec3(-16.23f, 124.96f, -13.10f));
+		antebrazoMat = glm::rotate(antebrazoMat, glm::radians(expositorRotAntebrazo), glm::vec3(1.0f, 0.0f, 0.0f));
+		antebrazoMat = glm::translate(antebrazoMat, glm::vec3(16.23f, -124.96f, 13.10f));
+		antebrazoMat = glm::translate(antebrazoMat, glm::vec3(0.3f, -0.1f, -0.62f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(antebrazoMat));
+		presentadorAntebrazo.Draw(lightingShader);
+
+		// Cabeza - gira en el cuello
+		glm::mat4 cabezaMat = modelPres;
+		cabezaMat = glm::translate(cabezaMat, glm::vec3(-13.19f, 126.10f, -18.28f));
+		cabezaMat = glm::rotate(cabezaMat, glm::radians(expositorRotCabeza), glm::vec3(0.0f, 1.0f, 0.0f));
+		cabezaMat = glm::translate(cabezaMat, glm::vec3(13.19f, -126.10f, 18.28f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(cabezaMat));
+		presentadorCabeza.Draw(lightingShader);
+
+		// Mano - se agita en la muñeca
+		glm::mat4 manoMat = antebrazoMat;
+		manoMat = glm::translate(manoMat, glm::vec3(-13.99f, 129.99f, -9.76f));
+		manoMat = glm::rotate(manoMat, glm::radians(expositorRotMano), glm::vec3(0.0f, 1.0f, 0.0f));
+		manoMat = glm::translate(manoMat, glm::vec3(13.99f, -129.99f, 9.76f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(manoMat));
+		presentadorMano.Draw(lightingShader);
+
+
+
+
+
 
 		// Also draw the lamp object, again binding the appropriate shader
 		lampShader.Use();
@@ -735,65 +678,7 @@ int main()
 // Moves/alters the camera positions based on user input
 void DoMovement()
 {
-	//Dog Controls
-
-	if (keys[GLFW_KEY_I]) IncliDog -= 1.0f; // Levantar el pecho (inclinarse atrás)
-	if (keys[GLFW_KEY_O]) IncliDog += 1.0f; // Bajar el pecho (inclinarse adelante)
-
-	if (keys[GLFW_KEY_Z]) dogPosY -= 0.01f; // Bajar cuerpo (Sentarse)
-	if (keys[GLFW_KEY_X]) dogPosY += 0.01f; // Subir cuerpo
-
-	if (keys[GLFW_KEY_C]) { RLegL -= 1.0f; RLegR += 1.0f; } // Ambas hacia adelante
-	if (keys[GLFW_KEY_V]) { RLegL += 1.0f; RLegR -= 1.0f; } // Ambas hacia atrás
-
-	if (keys[GLFW_KEY_B]) FLegR -= 1.0f; // Levantar pata derecha (Saludar)
-	if (keys[GLFW_KEY_N]) FLegR += 1.0f;
-
-	if (keys[GLFW_KEY_4])
-	{
-
-		head += 1.0f;
-
-	}
-	if (keys[GLFW_KEY_5])
-	{
-
-		head -= 1.0f;
-
-	}
-	if (keys[GLFW_KEY_2])
-	{
-
-		rotDog += 1.0f;
-
-	}
-
-	if (keys[GLFW_KEY_3])
-	{
-
-		rotDog -= 1.0f;
-
-	}
-
-	if (keys[GLFW_KEY_H])
-	{
-		dogPosZ += 0.01;
-	}
-
-	if (keys[GLFW_KEY_Y])
-	{
-		dogPosZ -= 0.01;
-	}
-
-	if (keys[GLFW_KEY_G])
-	{
-		dogPosX -= 0.01;
-	}
-
-	if (keys[GLFW_KEY_J])
-	{
-		dogPosX += 0.01;
-	}
+	
 
 	// Camera controls
 	if (keys[GLFW_KEY_W] || keys[GLFW_KEY_UP])
@@ -823,7 +708,7 @@ void DoMovement()
 
 	}
 
-	if (keys[GLFW_KEY_T])
+	/*if (keys[GLFW_KEY_T])
 	{
 		pointLightPositions[0].x += 0.01f;
 	}
@@ -848,44 +733,13 @@ void DoMovement()
 	if (keys[GLFW_KEY_J])
 	{
 		pointLightPositions[0].z += 0.01f;
-	}
+	}*/
 
 }
 
 // Is called whenever a key is pressed/released via GLFW
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-
-	//if (keys[GLFW_KEY_L])
-	//{
-	//	if (play == false && (FrameIndex > 1))
-	//	{
-
-	//		resetElements();
-	//		//First Interpolation				
-	//		interpolation();
-
-	//		play = true;
-	//		playIndex = 0;
-	//		i_curr_steps = 0;
-	//	}
-	//	else
-	//	{
-	//		play = false;
-	//	}
-
-	//}
-
-	//if (keys[GLFW_KEY_K])
-	//{
-	//	if (FrameIndex < MAX_FRAMES)
-	//	{
-	//		saveFrame();
-	//	}
-
-	//}
-
-
 	if (keys[GLFW_KEY_L])
 	{
 		modoDia = !modoDia;
@@ -908,6 +762,18 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 			keys[key] = false;
 		}
 	}
+	
+	// Tecla para controlar la animacion del presentador 
+	if (keys[GLFW_KEY_E])
+	{
+		animExpositor = !animExpositor;
+		if (!animExpositor)
+		{
+			expositorRotMano = 0.0f;
+			expositorRotCabeza = 0.0f;
+			expositorTiempo = 0.0f;
+		}
+	}
 
 	if (keys[GLFW_KEY_SPACE])
 	{
@@ -926,47 +792,13 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 
 }
 void Animation() {
-
-	if (play)
+	// ========== ANIMACIÓN PRESENTADOR (continua) ==========
+	if (animExpositor)
 	{
-		if (i_curr_steps >= i_max_steps) //end of animation between frames?
-		{
-			playIndex++;
-			if (playIndex > FrameIndex - 2)	//end of total animation?
-			{
-				printf("termina anim\n");
-				playIndex = 0;
-				play = false;
-			}
-			else //Next frame interpolations
-			{
-				i_curr_steps = 0; //Reset counter
-				//Interpolation
-				interpolation();
-			}
-		}
-		else
-		{
-			//Draw animation
-			dogPosX += KeyFrame[playIndex].incX;
-			dogPosY += KeyFrame[playIndex].incY;
-			dogPosZ += KeyFrame[playIndex].incZ;
-			head += KeyFrame[playIndex].headInc;
-
-
-			FLegL += KeyFrame[playIndex].FLegLInc;
-			FLegR += KeyFrame[playIndex].FLegRInc;
-			RLegL += KeyFrame[playIndex].RLegLInc;
-			RLegR += KeyFrame[playIndex].RLegRInc;
-			tail += KeyFrame[playIndex].tailInc;
-
-			IncliDog += KeyFrame[playIndex].IncliDogInc;
-
-			rotDog += KeyFrame[playIndex].rotDogInc;
-
-			i_curr_steps++;
-		}
-
+		expositorTiempo += deltaTime;
+		expositorRotMano = 25.0f * sin(expositorTiempo * 5.0f );
+		expositorRotCabeza = 15.0f * sin(expositorTiempo * 1.5f);
+		expositorRotAntebrazo = 20.0f * sin(expositorTiempo * 5.0f);
 	}
 
 }
