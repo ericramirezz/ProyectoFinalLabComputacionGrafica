@@ -16,6 +16,15 @@
     <ClInclude Include="Texture.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="ModeloAnimado.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="meshAnim.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Archivos de encabezado">
@@ -51,6 +60,12 @@
       <Filter>Archivos de origen\Shader</Filter>
     </None>
     <None Include="Shader\SkyBox.vs">
+      <Filter>Archivos de origen\Shader</Filter>
+    </None>
+    <None Include="Shader\anim.frag">
+      <Filter>Archivos de origen\Shader</Filter>
+    </None>
+    <None Include="Shader\anim.vs">
       <Filter>Archivos de origen\Shader</Filter>
     </None>
   </ItemGroup>

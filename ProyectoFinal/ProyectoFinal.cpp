@@ -31,6 +31,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Model.h"
+#include "ModeloAnimado.h"
 #include "Texture.h"
 
 
@@ -131,35 +132,17 @@ bool animExpositor = true;
 
 
 bool animVisitante = true;
+float visPosX = 0.0f;
+float visRotY = 0.0f;
+float tiempoAnimVisitante = 0.0f;
 
-// Posición y rotación del visitante
-float visPosX = 0.0f;   // posición en el eje del pasillo
-float visRotY = 0.0f;    // rotación del cuerpo 
-
-// Articulaciones
-float visMusloDer = 0.0f;
-float visMusloIzq = 0.0f;
-float visPantDer = 0.0f;
-float visPantIzq = 0.0f;
-float visBrazoDer = 0.0f;
-float visBrazoIzq = 0.0f;
-float visCabeza = 0.0f;
-
-// Sistema de KeyFrames del visitante
-#define VIS_MAX_FRAMES 22
-int vis_i_max_steps = 250;
+#define VIS_MAX_FRAMES 10
+int vis_i_max_steps = 120;
 int vis_i_curr_steps = 0;
 
 typedef struct _vis_frame {
-	float visPosX;       float visPosXInc;
-	float visRotY;       float visRotYInc;
-	float visMusloDer;   float visMusloDerInc;
-	float visMusloIzq;   float visMusloIzqInc;
-	float visPantDer;    float visPantDerInc;
-	float visPantIzq;    float visPantIzqInc;
-	float visBrazoDer;   float visBrazoDerInc;
-	float visBrazoIzq;   float visBrazoIzqInc;
-	float visCabeza;     float visCabezaInc;
+	float visPosX;    float visPosXInc;
+	float visRotY;    float visRotYInc;
 } VIS_FRAME;
 
 VIS_FRAME VisKF[VIS_MAX_FRAMES];
@@ -169,26 +152,14 @@ bool visPlay = false;
 void visResetElements(void) {
 	visPosX = VisKF[0].visPosX;
 	visRotY = VisKF[0].visRotY;
-	visMusloDer = VisKF[0].visMusloDer;
-	visMusloIzq = VisKF[0].visMusloIzq;
-	visPantDer = VisKF[0].visPantDer;
-	visPantIzq = VisKF[0].visPantIzq;
-	visBrazoDer = VisKF[0].visBrazoDer;
-	visBrazoIzq = VisKF[0].visBrazoIzq;
-	visCabeza = VisKF[0].visCabeza;
 }
 
 void visInterpolation(void) {
 	VisKF[visPlayIndex].visPosXInc = (VisKF[visPlayIndex + 1].visPosX - VisKF[visPlayIndex].visPosX) / vis_i_max_steps;
 	VisKF[visPlayIndex].visRotYInc = (VisKF[visPlayIndex + 1].visRotY - VisKF[visPlayIndex].visRotY) / vis_i_max_steps;
-	VisKF[visPlayIndex].visMusloDerInc = (VisKF[visPlayIndex + 1].visMusloDer - VisKF[visPlayIndex].visMusloDer) / vis_i_max_steps;
-	VisKF[visPlayIndex].visMusloIzqInc = (VisKF[visPlayIndex + 1].visMusloIzq - VisKF[visPlayIndex].visMusloIzq) / vis_i_max_steps;
-	VisKF[visPlayIndex].visPantDerInc = (VisKF[visPlayIndex + 1].visPantDer - VisKF[visPlayIndex].visPantDer) / vis_i_max_steps;
-	VisKF[visPlayIndex].visPantIzqInc = (VisKF[visPlayIndex + 1].visPantIzq - VisKF[visPlayIndex].visPantIzq) / vis_i_max_steps;
-	VisKF[visPlayIndex].visBrazoDerInc = (VisKF[visPlayIndex + 1].visBrazoDer - VisKF[visPlayIndex].visBrazoDer) / vis_i_max_steps;
-	VisKF[visPlayIndex].visBrazoIzqInc = (VisKF[visPlayIndex + 1].visBrazoIzq - VisKF[visPlayIndex].visBrazoIzq) / vis_i_max_steps;
-	VisKF[visPlayIndex].visCabezaInc = (VisKF[visPlayIndex + 1].visCabeza - VisKF[visPlayIndex].visCabeza) / vis_i_max_steps;
 }
+
+
 
 
 
@@ -252,6 +223,9 @@ int main()
 	// Nuevo shader para skybox
 	Shader skyboxshader("Shader/skybox.vs", "Shader/skybox.frag");
 
+	// Shader para animacion con huesos
+	Shader shaderAnimacion("Shader/anim.vs", "Shader/anim.frag");
+
 
 	//Modelos
 
@@ -261,15 +235,7 @@ int main()
 
 	// Modelo del perro robot
 
-	Model perroCuerpo((char*)"Models/perroRobot/cuerpo.obj");
-	Model perroPDIU((char*)"Models/perroRobot/patadelanteraIzUp.obj");
-	Model perroPDID((char*)"Models/perroRobot/patadelanteraIzDown.obj");
-	Model perroPDDU((char*)"Models/perroRobot/patadelanteraDerUp.obj");
-	Model perroPDDD((char*)"Models/perroRobot/patadelanteraDerDown.obj");
-	Model perroPTIU((char*)"Models/perroRobot/patatraseraIzUp.obj");
-	Model perroPTID((char*)"Models/perroRobot/patatraseraIzDown.obj");
-	Model perroPTDU((char*)"Models/perroRobot/patatraseraDerUp.obj");
-	Model perroPTDD((char*)"Models/perroRobot/patatraseraDerDown.obj");
+	
 
 
 	//mamparas basicas
@@ -301,15 +267,8 @@ int main()
 	Model presentadorMano((char*)"Models/Presentador/mano.obj");
 
 
-	// Modelo del visitante
-	Model visCabezaM((char*)"Models/Visitante/cabeza.obj");
-	Model visTorso((char*)"Models/Visitante/torso.obj");
-	Model visBrazoDerM((char*)"Models/Visitante/brazoDer.obj");
-	Model visBrazoIzqM((char*)"Models/Visitante/brazoIzq.obj");
-	Model visMusloDerM((char*)"Models/Visitante/musloDer.obj");
-	Model visMusloIzqM((char*)"Models/Visitante/musloIzq.obj");
-	Model visPantDerM((char*)"Models/Visitante/pantorillaDer.obj");
-	Model visPantIzqM((char*)"Models/Visitante/pantorillaIzq.obj");
+	// Modelo del visitante con animacion
+	ModeloAnimado visitante((GLchar*)"Models/Visitante/visitante.fbx");
 
 
 
@@ -473,30 +432,17 @@ int main()
 
 	// Valores de los KeyFrames
 	
-	// IDA: 10 pasos para recorrer el pasillo
-	//                    posX     rotY    mDer   mIzq   pDer   pIzq   bDer   bIzq   cab
-	VisKF[0] = { -250.0f, 0,  0.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
-	VisKF[1] = { -220.0f, 0,  0.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
-	VisKF[2] = { -185.0f, 0,  0.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
-	VisKF[3] = { -150.0f, 0,  0.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
-	VisKF[4] = { -115.0f, 0,  0.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
-	VisKF[5] = { -80.0f, 0,  0.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
-	VisKF[6] = { -45.0f, 0,  0.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
-	VisKF[7] = { -10.0f, 0,  0.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
-	VisKF[8] = { 30.0f, 0,  0.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
-	VisKF[9] = { 80.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0,  0.0f, 0 };
-	VisKF[10] = { 80.0f, 0, -75.0f, 0,  0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0, -15.0f, 0 };
-	VisKF[11] = { 80.0f, 0, -75.0f, 0,  0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0, -15.0f, 0 };
-	VisKF[12] = { 80.0f, 0,  75.0f, 0,  0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0,  15.0f, 0 };
-	VisKF[13] = { 80.0f, 0,  75.0f, 0,  0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0,  15.0f, 0 };
-	VisKF[14] = { 80.0f, 0, 180.0f, 0,  0.0f, 0,   0.0f, 0,  0.0f, 0,  0.0f, 0,   0.0f, 0,   0.0f, 0,   0.0f, 0 };
-	VisKF[15] = { 40.0f, 0, 180.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
-	VisKF[16] = { -5.0f, 0, 180.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
-	VisKF[17] = { -50.0f, 0, 180.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
-	VisKF[18] = { -100.0f, 0, 180.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
-	VisKF[19] = { -155.0f, 0, 180.0f, 0, -12.0f, 0,  12.0f, 0, -2.0f, 0, -5.0f, 0,  10.0f, 0, -10.0f, 0,  0.0f, 0 };
-	VisKF[20] = { -205.0f, 0, 180.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
-	VisKF[21] = { -250.0f, 0, 360.0f, 0,  12.0f, 0, -12.0f, 0, -5.0f, 0, -2.0f, 0, -10.0f, 0,  10.0f, 0,  0.0f, 0 };
+	//                    posX     rotY
+	VisKF[0] = { -250.0f, 0,   0.0f, 0 };  // Inicio
+	VisKF[1] = { 80.0f, 0,   0.0f, 0 };  // Llega al final
+	VisKF[2] = { 80.0f, 0, -75.0f, 0 };  // Mira stand derecho
+	VisKF[3] = { 80.0f, 0, -75.0f, 0 };  // Sostiene mirada
+	VisKF[4] = { 80.0f, 0,  75.0f, 0 };  // Mira stand izquierdo
+	VisKF[5] = { 80.0f, 0,  75.0f, 0 };  // Sostiene mirada
+	VisKF[6] = { 80.0f, 0, 180.0f, 0 };  // Gira para regresar
+	VisKF[7] = { -250.0f, 0, 180.0f, 0 };  // Regresa al inicio
+	VisKF[8] = { -250.0f, 0, 360.0f, 0 };  // Gira para mirar al fondo
+	VisKF[9] = { -250.0f, 0, 360.0f, 0 };  // Sostiene (loop)
 
 
 
@@ -631,21 +577,12 @@ int main()
 		Puente.Draw(lightingShader);
 
 
-		// Perro robot
+		// Stands
 
 		model = glm::mat4(1);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
 		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		perroCuerpo.Draw(lightingShader);
-		perroPDIU.Draw(lightingShader);
-		perroPDID.Draw(lightingShader);
-		perroPDDU.Draw(lightingShader);
-		perroPDDD.Draw(lightingShader);
-		perroPTIU.Draw(lightingShader);
-		perroPTID.Draw(lightingShader);
-		perroPTDU.Draw(lightingShader);
-		perroPTDD.Draw(lightingShader);
 		stand_pag.Draw(lightingShader);
 		stand_amazon.Draw(lightingShader);
 		stand_oracle.Draw(lightingShader);
@@ -691,92 +628,35 @@ int main()
 		////////////////////////////////////////////
 
 
-
 		///////// VISITANTE CAMINANDO //////////
 		{
-			
-			float sc = 0.005f;
-			glm::vec3 offset(0.0f, 0.0f, -3.0f);
+			shaderAnimacion.Use();
+			GLint modelLocAnim = glGetUniformLocation(shaderAnimacion.Program, "model");
+			GLint viewLocAnim = glGetUniformLocation(shaderAnimacion.Program, "view");
+			GLint projLocAnim = glGetUniformLocation(shaderAnimacion.Program, "projection");
+			glUniformMatrix4fv(viewLocAnim, 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(projLocAnim, 1, GL_FALSE, glm::value_ptr(projection));
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "viewPos"), camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "material.specular"), 0.05f, 0.05f, 0.05f);
+			glUniform1f(glGetUniformLocation(shaderAnimacion.Program, "material.shininess"), 32.0f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.direction"), -0.2f, -1.0f, -0.3f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.ambient"), 0.6f, 0.6f, 0.6f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.diffuse"), 0.6f, 0.6f, 0.6f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.specular"), 0.3f, 0.3f, 0.3f);
 
-			
-			glm::vec3 pivCuello(-0.40f, 126.5f, 22.77f);
-			glm::vec3 pivHombroDer(-1.10f, 126.0f, 21.2f);
-			glm::vec3 pivHombroIzq(-1.02f, 126.0f, 24.5f);
-			glm::vec3 pivCaderaDer(-0.12f, 120.0f, 21.46f);
-			glm::vec3 pivCaderaIzq(-0.07f, 120.0f, 24.19f);
-			glm::vec3 pivRodillaDer(-0.42f, 111.0f, 21.21f);
-			glm::vec3 pivRodillaIzq(-0.46f, 107.8f, 24.32f);
+			glm::mat4 modelVis = glm::mat4(1.0f);
+			modelVis = glm::translate(modelVis, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelVis = glm::scale(modelVis, glm::vec3(0.005f, 0.005f, 0.005f));
+			glUniformMatrix4fv(modelLocAnim, 1, GL_FALSE, glm::value_ptr(modelVis));
 
+			tiempoAnimVisitante += deltaTime;
+			visitante.Draw(shaderAnimacion, tiempoAnimVisitante);
 
-			glm::mat4 visBase = glm::mat4(1);
-			visBase = glm::translate(visBase, offset);
-			visBase = glm::scale(visBase, glm::vec3(sc));
-			visBase = glm::translate(visBase, glm::vec3(visPosX, 0.0f, 0.0f));
-			visBase = glm::translate(visBase, glm::vec3(-0.40f, 99.93f, 22.77f));
-			visBase = glm::rotate(visBase, glm::radians(visRotY + 180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-			visBase = glm::translate(visBase, glm::vec3(0.40f, -99.93f, -22.77f));
-
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(visBase));
-			visTorso.Draw(lightingShader);
-
-			// CABEZA 
-			glm::mat4 matCab = visBase;
-			matCab = glm::translate(matCab, pivCuello);
-			matCab = glm::rotate(matCab, glm::radians(visCabeza), glm::vec3(0.0f, 1.0f, 0.0f));
-			matCab = glm::translate(matCab, -pivCuello);
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matCab));
-			visCabezaM.Draw(lightingShader);
-
-			// BRAZO DERECHO 
-			glm::mat4 matBDer = visBase;
-			matBDer = glm::translate(matBDer, pivHombroDer);
-			matBDer = glm::rotate(matBDer, glm::radians(visBrazoDer), glm::vec3(0.0f, 0.0f, 1.0f));
-			matBDer = glm::translate(matBDer, -pivHombroDer);
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matBDer));
-			visBrazoDerM.Draw(lightingShader);
-
-			// BRAZO IZQUIERDO 
-			glm::mat4 matBIzq = visBase;
-			matBIzq = glm::translate(matBIzq, pivHombroIzq);
-			matBIzq = glm::rotate(matBIzq, glm::radians(visBrazoIzq), glm::vec3(0.0f, 0.0f, 1.0f));
-			matBIzq = glm::translate(matBIzq, -pivHombroIzq);
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matBIzq));
-			visBrazoIzqM.Draw(lightingShader);
-
-			// MUSLO DERECHO 
-			glm::mat4 matMDer = visBase;
-			matMDer = glm::translate(matMDer, pivCaderaDer);
-			matMDer = glm::rotate(matMDer, glm::radians(visMusloDer), glm::vec3(0.0f, 0.0f, 1.0f));
-			matMDer = glm::translate(matMDer, -pivCaderaDer);
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matMDer));
-			visMusloDerM.Draw(lightingShader);
-
-			// PANTORRILLA DERECHA 
-			glm::mat4 matPDer = matMDer; // hereda del muslo
-			matPDer = glm::translate(matPDer, pivRodillaDer);
-			matPDer = glm::rotate(matPDer, glm::radians(visPantDer), glm::vec3(0.0f, 0.0f, 1.0f));
-			matPDer = glm::translate(matPDer, -pivRodillaDer);
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matPDer));
-			visPantDerM.Draw(lightingShader);
-
-			// MUSLO IZQUIERDO 
-			glm::mat4 matMIzq = visBase;
-			matMIzq = glm::translate(matMIzq, pivCaderaIzq);
-			matMIzq = glm::rotate(matMIzq, glm::radians(visMusloIzq), glm::vec3(0.0f, 0.0f, 1.0f));
-			matMIzq = glm::translate(matMIzq, -pivCaderaIzq);
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matMIzq));
-			visMusloIzqM.Draw(lightingShader);
-
-			// PANTORRILLA IZQUIERDA 
-			glm::mat4 matPIzq = matMIzq; // hereda del muslo
-			matPIzq = glm::translate(matPIzq, pivRodillaIzq);
-			matPIzq = glm::rotate(matPIzq, glm::radians(visPantIzq), glm::vec3(0.0f, 0.0f, 1.0f));
-			matPIzq = glm::translate(matPIzq, -pivRodillaIzq);
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(matPIzq));
-			visPantIzqM.Draw(lightingShader);
+			lightingShader.Use();
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 		}
 		////////////////////////////////////////////
-		
 
 
 
@@ -1024,13 +904,6 @@ void Animation() {
 		else {
 			visPosX += VisKF[visPlayIndex].visPosXInc;
 			visRotY += VisKF[visPlayIndex].visRotYInc;
-			visMusloDer += VisKF[visPlayIndex].visMusloDerInc;
-			visMusloIzq += VisKF[visPlayIndex].visMusloIzqInc;
-			visPantDer += VisKF[visPlayIndex].visPantDerInc;
-			visPantIzq += VisKF[visPlayIndex].visPantIzqInc;
-			visBrazoDer += VisKF[visPlayIndex].visBrazoDerInc;
-			visBrazoIzq += VisKF[visPlayIndex].visBrazoIzqInc;
-			visCabeza += VisKF[visPlayIndex].visCabezaInc;
 			vis_i_curr_steps++;
 		}
 	}
