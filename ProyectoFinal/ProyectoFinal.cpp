@@ -298,14 +298,14 @@ int main()
 
 
 	//mamparas basicas
-	//Model perroPDIU((char*)"Models/.obj");
-	//Model perroPDID((char*)"Models/.obj");
-	//Model perroPDDU((char*)"Models/.obj");
-	//Model perroPDDD((char*)"Models/.obj");
-	//Model perroPTIU((char*)"Models/.obj");
-	//Model perroPTID((char*)"Models/.obj");
-	//Model perroPTDU((char*)"Models/.obj");
-	//Model perroPTDD((char*)"Models/.obj");
+	Model mamp1((char*)"Models/stands_2/mamp_1.obj");
+	Model mamp2((char*)"Models/stands_2/mamp_2.obj");
+	Model mamp3((char*)"Models/stands_2/mamp_3.obj");
+	Model mamp4((char*)"Models/stands_2/mamp_4.obj");
+	Model mamp5((char*)"Models/stands_2/mamp_5.obj");
+	Model mamp6((char*)"Models/stands_2/mamp_6.obj");
+	Model mamp7((char*)"Models/stands_2/mamp_7.obj");
+	Model mamp8((char*)"Models/stands_2/mamp_8.obj");
 
 
 
@@ -619,6 +619,16 @@ int main()
 		stand_crofi.Draw(lightingShader);
 		stand_aero.Draw(lightingShader);
 		stand_siafi.Draw(lightingShader);
+
+		mamp1.Draw(lightingShader);
+		mamp2.Draw(lightingShader);
+		mamp3.Draw(lightingShader);
+		mamp4.Draw(lightingShader);
+		mamp5.Draw(lightingShader);
+		mamp6.Draw(lightingShader);
+		mamp7.Draw(lightingShader);
+		mamp8.Draw(lightingShader);
+
 
 		
 
