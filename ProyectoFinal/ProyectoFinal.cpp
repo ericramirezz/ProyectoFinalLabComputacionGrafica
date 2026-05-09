@@ -235,23 +235,35 @@ int main()
 
 	// Modelo del perro robot
 
+
 	
+//=======
+	//Model perroCuerpo((char*)"Models/perroRobot/cuerpo.obj");
+	//Model perroPDIU((char*)"Models/perroRobot/patadelanteraIzUp.obj");
+	//Model perroPDID((char*)"Models/perroRobot/patadelanteraIzDown.obj");
+	//Model perroPDDU((char*)"Models/perroRobot/patadelanteraDerUp.obj");
+	//Model perroPDDD((char*)"Models/perroRobot/patadelanteraDerDown.obj");
+	//Model perroPTIU((char*)"Models/perroRobot/patatraseraIzUp.obj");
+	//Model perroPTID((char*)"Models/perroRobot/patatraseraIzDown.obj");
+	//Model perroPTDU((char*)"Models/perroRobot/patatraseraDerUp.obj");
+	//Model perroPTDD((char*)"Models/perroRobot/patatraseraDerDown.obj");
+//ba0cdeacaf8e0c6ec4df1e431da83aec27993224
 
 
 	//mamparas basicas
-	//Model perroPDIU((char*)"Models/.obj");
-	//Model perroPDID((char*)"Models/.obj");
-	//Model perroPDDU((char*)"Models/.obj");
-	//Model perroPDDD((char*)"Models/.obj");
-	//Model perroPTIU((char*)"Models/.obj");
-	//Model perroPTID((char*)"Models/.obj");
-	//Model perroPTDU((char*)"Models/.obj");
-	//Model perroPTDD((char*)"Models/.obj");
+	Model mamp1((char*)"Models/stands_2/mamp_1.obj");
+	Model mamp2((char*)"Models/stands_2/mamp_2.obj");
+	Model mamp3((char*)"Models/stands_2/mamp_3.obj");
+	Model mamp4((char*)"Models/stands_2/mamp_4.obj");
+	Model mamp5((char*)"Models/stands_2/mamp_5.obj");
+	Model mamp6((char*)"Models/stands_2/mamp_6.obj");
+	Model mamp7((char*)"Models/stands_2/mamp_7.obj");
+	Model mamp8((char*)"Models/stands_2/mamp_8.obj");
 
 
 
 	//stands de empresas
-	Model stand_pag((char*)"Models/stands_1/p&g.obj");
+	Model stand_pag((char*)"Models/stands_1/pg.obj");
 	Model stand_amazon((char*)"Models/stands_1/amazon.obj");
 	Model stand_oracle((char*)"Models/stands_1/oracle.obj");
 
@@ -265,6 +277,10 @@ int main()
 	Model presentadorCabeza((char*)"Models/Presentador/cabeza.obj");
 	Model presentadorAntebrazo((char*)"Models/Presentador/antebrazo.obj");
 	Model presentadorMano((char*)"Models/Presentador/mano.obj");
+
+	//pumagua
+	Model pumagua((char*)"Models/extras/pumagua/pumagua.obj");
+
 
 
 	// Modelo del visitante con animacion
@@ -583,6 +599,20 @@ int main()
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
 		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+//<<<<<<< HEAD
+//=======
+		/*
+		perroCuerpo.Draw(lightingShader);
+		perroPDIU.Draw(lightingShader);
+		perroPDID.Draw(lightingShader);
+		perroPDDU.Draw(lightingShader);
+		perroPDDD.Draw(lightingShader);
+		perroPTIU.Draw(lightingShader);
+		perroPTID.Draw(lightingShader);
+		perroPTDU.Draw(lightingShader);
+		perroPTDD.Draw(lightingShader);*/
+
+//>>>>>>> ba0cdeacaf8e0c6ec4df1e431da83aec27993224
 		stand_pag.Draw(lightingShader);
 		stand_amazon.Draw(lightingShader);
 		stand_oracle.Draw(lightingShader);
@@ -625,8 +655,11 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(manoMat));
 		presentadorMano.Draw(lightingShader);
 
-		////////////////////////////////////////////
-
+//<<<<<<< HEAD
+//		////////////////////////////////////////////
+//
+//=======
+//>>>>>>> ba0cdeacaf8e0c6ec4df1e431da83aec27993224
 
 		///////// VISITANTE CAMINANDO //////////
 		{
@@ -656,13 +689,21 @@ int main()
 			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 		}
-		////////////////////////////////////////////
 
 
-
-
-
-
+		model = glm::mat4(1);
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
+		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
+		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		mamp1.Draw(lightingShader);
+		mamp2.Draw(lightingShader);
+		mamp3.Draw(lightingShader);
+		mamp4.Draw(lightingShader);
+		mamp5.Draw(lightingShader);
+		mamp6.Draw(lightingShader);
+		mamp7.Draw(lightingShader);
+		mamp8.Draw(lightingShader);
+		pumagua.Draw(lightingShader);
 
 
 		// Also draw the lamp object, again binding the appropriate shader
