@@ -286,15 +286,15 @@ int main()
 
 	// Modelo del perro robot
 
-	Model perroCuerpo((char*)"Models/perroRobot/cuerpo.obj");
-	Model perroPDIU((char*)"Models/perroRobot/patadelanteraIzUp.obj");
-	Model perroPDID((char*)"Models/perroRobot/patadelanteraIzDown.obj");
-	Model perroPDDU((char*)"Models/perroRobot/patadelanteraDerUp.obj");
-	Model perroPDDD((char*)"Models/perroRobot/patadelanteraDerDown.obj");
-	Model perroPTIU((char*)"Models/perroRobot/patatraseraIzUp.obj");
-	Model perroPTID((char*)"Models/perroRobot/patatraseraIzDown.obj");
-	Model perroPTDU((char*)"Models/perroRobot/patatraseraDerUp.obj");
-	Model perroPTDD((char*)"Models/perroRobot/patatraseraDerDown.obj");
+	//Model perroCuerpo((char*)"Models/perroRobot/cuerpo.obj");
+	//Model perroPDIU((char*)"Models/perroRobot/patadelanteraIzUp.obj");
+	//Model perroPDID((char*)"Models/perroRobot/patadelanteraIzDown.obj");
+	//Model perroPDDU((char*)"Models/perroRobot/patadelanteraDerUp.obj");
+	//Model perroPDDD((char*)"Models/perroRobot/patadelanteraDerDown.obj");
+	//Model perroPTIU((char*)"Models/perroRobot/patatraseraIzUp.obj");
+	//Model perroPTID((char*)"Models/perroRobot/patatraseraIzDown.obj");
+	//Model perroPTDU((char*)"Models/perroRobot/patatraseraDerUp.obj");
+	//Model perroPTDD((char*)"Models/perroRobot/patatraseraDerDown.obj");
 
 
 	//mamparas basicas
@@ -318,6 +318,9 @@ int main()
 	Model stand_crofi((char*)"Models/stands_1/crofi.obj");
 	Model stand_aero((char*)"Models/stands_1/aero.obj");
 	Model stand_siafi((char*)"Models/stands_1/siafi.obj");
+
+	//pumagua
+	Model pumagua((char*)"Models/extras/pumagua/pumagua.obj");
 
 
 
@@ -629,6 +632,8 @@ int main()
 		mamp7.Draw(lightingShader);
 		mamp8.Draw(lightingShader);
 
+
+		pumagua.Draw(lightingShader);
 
 		
 
