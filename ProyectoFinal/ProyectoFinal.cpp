@@ -310,7 +310,7 @@ int main()
 
 
 	//stands de empresas
-	Model stand_pag((char*)"Models/stands_1/p&g.obj");
+	Model stand_pag((char*)"Models/stands_1/pg.obj");
 	Model stand_amazon((char*)"Models/stands_1/amazon.obj");
 	Model stand_oracle((char*)"Models/stands_1/oracle.obj");
 
