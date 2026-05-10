@@ -1,5 +1,5 @@
-// Medina Villa Samuel 320249538
-// Eric Ramírez 423095203
+ï»¿// Medina Villa Samuel 320249538
+// Eric RamÃ­rez 423095203
 // Proyecto Final
 // Fecha de entrega: 13 de mayo de 2026
 
@@ -122,7 +122,7 @@ float tail = 0.0f;
 
 float IncliDog = 0.0f;
 
-//  ANIMACIÓN PRESENTADOR 
+//  ANIMACIÃ“N PRESENTADOR 
 float expositorRotMano = 0.0f;
 float expositorRotAntebrazo = 0.0f;
 float expositorRotCabeza = 0.0f;
@@ -160,10 +160,14 @@ void visInterpolation(void) {
 }
 
 
+Model* logoOracle;
+//ModeloAnimado logoAmazon((GLchar*)"Models/stands_1/amazon_animado.fbx");
 
+float tiempoOracle = 0.0f;
+float tiempoAmazon = 0.0f;
 
-
-
+bool playOracle = false;
+bool playAmazon = false;
 
 
 // Deltatime
@@ -215,7 +219,7 @@ int main()
 	// Define the viewport dimensions
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-
+	logoOracle = new Model((char*)"Models/logos/oracle.obj");
 
 	Shader lightingShader("Shader/lighting.vs", "Shader/lighting.frag");
 	Shader lampShader("Shader/lamp.vs", "Shader/lamp.frag");
@@ -260,8 +264,6 @@ int main()
 	Model mamp7((char*)"Models/stands_2/mamp_7.obj");
 	Model mamp8((char*)"Models/stands_2/mamp_8.obj");
 
-
-
 	//stands de empresas
 	Model stand_pag((char*)"Models/stands_1/pg.obj");
 	Model stand_amazon((char*)"Models/stands_1/amazon.obj");
@@ -280,7 +282,6 @@ int main()
 
 	//pumagua
 	Model pumagua((char*)"Models/extras/pumagua/pumagua.obj");
-
 
 
 	// Modelo del visitante con animacion
@@ -612,7 +613,6 @@ int main()
 		perroPTDU.Draw(lightingShader);
 		perroPTDD.Draw(lightingShader);*/
 
-//>>>>>>> ba0cdeacaf8e0c6ec4df1e431da83aec27993224
 		stand_pag.Draw(lightingShader);
 		stand_amazon.Draw(lightingShader);
 		stand_oracle.Draw(lightingShader);
@@ -655,12 +655,6 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(manoMat));
 		presentadorMano.Draw(lightingShader);
 
-//<<<<<<< HEAD
-//		////////////////////////////////////////////
-//
-//=======
-//>>>>>>> ba0cdeacaf8e0c6ec4df1e431da83aec27993224
-
 		///////// VISITANTE CAMINANDO //////////
 		{
 			shaderAnimacion.Use();
@@ -685,6 +679,25 @@ int main()
 			tiempoAnimVisitante += deltaTime;
 			visitante.Draw(shaderAnimacion, tiempoAnimVisitante);
 
+			//dibujamos logo oracle
+			lightingShader.Use();
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			
+			glm::vec3 centro(-255.8f, 136.83f, -48.15f); //(oordenadas tomadas de la escena en lender
+
+			glm::mat4 modelOracle = glm::mat4(1.0f);
+			modelOracle = glm::translate(modelOracle, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelOracle = glm::scale(modelOracle, glm::vec3(0.005f, 0.005f, 0.005f));
+			modelOracle = glm::translate(modelOracle, centro);          //mueve pivote al centro
+
+			if (playOracle)
+				modelOracle = glm::rotate(modelOracle, tiempoOracle, glm::vec3(0.0f, 1.0f, 0.0f));
+			modelOracle = glm::translate(modelOracle, -centro);         //regresa pivote
+
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelOracle));
+			logoOracle->Draw(lightingShader);
+
 			lightingShader.Use();
 			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -704,6 +717,11 @@ int main()
 		mamp7.Draw(lightingShader);
 		mamp8.Draw(lightingShader);
 		pumagua.Draw(lightingShader);
+
+
+		//modelo de logos rotando
+
+		//oracle
 
 
 		// Also draw the lamp object, again binding the appropriate shader
@@ -744,7 +762,7 @@ int main()
 		// Modelo para posicionar y escalar la caja alrededor del puente
 		model = glm::mat4(1);
 		model = glm::translate(model, glm::vec3(-0.0413f, 0.6800f, -2.9475f));// Centro del puente
-		model = glm::scale(model, glm::vec3(1.4619f, 0.1850f, 0.4875f));    // Imagenes al tamaño del puente
+		model = glm::scale(model, glm::vec3(1.4619f, 0.1850f, 0.4875f));    // Imagenes al tamaÃ±o del puente
 		glUniformMatrix4fv(glGetUniformLocation(skyboxshader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
 		glBindVertexArray(skyboxVAO);
@@ -905,6 +923,21 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		printf("Animacion Visitante: %s\n", animVisitante ? "ON" : "OFF");
 	}
 
+	//tecla 1 para controlar la rotaciÃ³n del logo de oracle
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS)
+	{
+		playOracle = !playOracle;
+		if (!playOracle) tiempoOracle = 0.0f; // Reinicia si se apaga
+		printf("Animacion Oracle: %s\n", playOracle ? "ON" : "OFF");
+	}
+	//tecla 2 para controlar la rotaciÃ³nb del logo de amazon
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS)
+	{
+		playAmazon = !playAmazon;
+		if (!playAmazon) tiempoAmazon = 0.0f;
+		printf("Animacion Amazon: %s\n", playAmazon ? "ON" : "OFF");
+	}
+
 	if (keys[GLFW_KEY_SPACE])
 	{
 		active = !active;
@@ -922,7 +955,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 
 }
 void Animation() {
-	// ANIMACIÓN PRESENTADOR 
+	// ANIMACIÃ“N PRESENTADOR 
 	if (animExpositor)
 	{
 		expositorTiempo += deltaTime;
@@ -931,7 +964,7 @@ void Animation() {
 		expositorRotAntebrazo = 20.0f * sin(expositorTiempo * 5.0f);
 	}
 
-	// ANIMACIÓN VISITANTE POR KEYFRAMES
+	// ANIMACIÃ“N VISITANTE POR KEYFRAMES
 	if (visPlay) {
 		if (vis_i_curr_steps >= vis_i_max_steps) {
 			visPlayIndex++;
@@ -947,6 +980,14 @@ void Animation() {
 			visRotY += VisKF[visPlayIndex].visRotYInc;
 			vis_i_curr_steps++;
 		}
+	}
+
+	//ANIMACIONES DE ROTACIÃ“N DE LOGOS
+	if (playOracle) {
+		tiempoOracle += deltaTime;
+	}
+	if (playAmazon) {
+		tiempoAmazon += deltaTime;
 	}
 
 }
