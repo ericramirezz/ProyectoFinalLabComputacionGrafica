@@ -135,14 +135,16 @@ bool animVisitante = true;
 float visPosX = 0.0f;
 float visRotY = 0.0f;
 float tiempoAnimVisitante = 0.0f;
+float poseFijaVisitante = 1.1f;
 
 #define VIS_MAX_FRAMES 10
-int vis_i_max_steps = 120;
+int vis_i_max_steps = 1200;
 int vis_i_curr_steps = 0;
 
 typedef struct _vis_frame {
 	float visPosX;    float visPosXInc;
 	float visRotY;    float visRotYInc;
+	int maxSteps;
 } VIS_FRAME;
 
 VIS_FRAME VisKF[VIS_MAX_FRAMES];
@@ -155,9 +157,13 @@ void visResetElements(void) {
 }
 
 void visInterpolation(void) {
+	
+	vis_i_max_steps = VisKF[visPlayIndex].maxSteps;
+
 	VisKF[visPlayIndex].visPosXInc = (VisKF[visPlayIndex + 1].visPosX - VisKF[visPlayIndex].visPosX) / vis_i_max_steps;
 	VisKF[visPlayIndex].visRotYInc = (VisKF[visPlayIndex + 1].visRotY - VisKF[visPlayIndex].visRotY) / vis_i_max_steps;
 }
+
 
 
 
@@ -250,7 +256,7 @@ int main()
 //ba0cdeacaf8e0c6ec4df1e431da83aec27993224
 
 
-	//mamparas basicas
+	//Lamparas basicas
 	Model mamp1((char*)"Models/stands_2/mamp_1.obj");
 	Model mamp2((char*)"Models/stands_2/mamp_2.obj");
 	Model mamp3((char*)"Models/stands_2/mamp_3.obj");
@@ -446,21 +452,19 @@ int main()
 	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 100.0f);
 
 
-	// Valores de los KeyFrames
 	
-	//                    posX     rotY
-	VisKF[0] = { -250.0f, 0,   0.0f, 0 };  // Inicio
-	VisKF[1] = { 80.0f, 0,   0.0f, 0 };  // Llega al final
-	VisKF[2] = { 80.0f, 0, -75.0f, 0 };  // Mira stand derecho
-	VisKF[3] = { 80.0f, 0, -75.0f, 0 };  // Sostiene mirada
-	VisKF[4] = { 80.0f, 0,  75.0f, 0 };  // Mira stand izquierdo
-	VisKF[5] = { 80.0f, 0,  75.0f, 0 };  // Sostiene mirada
-	VisKF[6] = { 80.0f, 0, 180.0f, 0 };  // Gira para regresar
-	VisKF[7] = { -250.0f, 0, 180.0f, 0 };  // Regresa al inicio
-	VisKF[8] = { -250.0f, 0, 360.0f, 0 };  // Gira para mirar al fondo
-	VisKF[9] = { -250.0f, 0, 360.0f, 0 };  // Sostiene (loop)
 
-
+	// Valores de los KeyFrames 
+	VisKF[0] = { 0.0f, 0,   0.0f, 0,  800 };  // Camina al extremo derecho
+	VisKF[1] = { 240.0f, 0,   0.0f, 0,   50 };  // Gira a ver stand (0 a 90 grados)
+	VisKF[2] = { 240.0f, 0,  90.0f, 0,  200 };  
+	VisKF[3] = { 240.0f, 0,  90.0f, 0,   50 };  //Gira para regresar 
+	VisKF[4] = { 240.0f, 0, 180.0f, 0, 1600 };  //Camina al otro extremo
+	VisKF[5] = { -250.0f, 0, 180.0f, 0,   50 };  // Gira a ver stand 
+	VisKF[6] = { -250.0f, 0, 270.0f, 0,  200 };  
+	VisKF[7] = { -250.0f, 0, 270.0f, 0,   50 };  
+	VisKF[8] = { -250.0f, 0, 360.0f, 0,  950 };  //Camina de vuelta al centro
+	VisKF[9] = { 0.0f, 0, 360.0f, 0,    1 };  
 
 	visResetElements();
 	visPlay = true;
@@ -599,8 +603,7 @@ int main()
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
 		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-//<<<<<<< HEAD
-//=======
+
 		/*
 		perroCuerpo.Draw(lightingShader);
 		perroPDIU.Draw(lightingShader);
@@ -612,7 +615,7 @@ int main()
 		perroPTDU.Draw(lightingShader);
 		perroPTDD.Draw(lightingShader);*/
 
-//>>>>>>> ba0cdeacaf8e0c6ec4df1e431da83aec27993224
+
 		stand_pag.Draw(lightingShader);
 		stand_amazon.Draw(lightingShader);
 		stand_oracle.Draw(lightingShader);
@@ -655,42 +658,59 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(manoMat));
 		presentadorMano.Draw(lightingShader);
 
-//<<<<<<< HEAD
-//		////////////////////////////////////////////
-//
-//=======
-//>>>>>>> ba0cdeacaf8e0c6ec4df1e431da83aec27993224
+		/////////////////////////////////////////////////////////////
 
-		///////// VISITANTE CAMINANDO //////////
+		/////// VISITANTE CAMINANDO //////////
+	
+		shaderAnimacion.Use();
+		GLint modelLocAnim = glGetUniformLocation(shaderAnimacion.Program, "model");
+		GLint viewLocAnim = glGetUniformLocation(shaderAnimacion.Program, "view");
+		GLint projLocAnim = glGetUniformLocation(shaderAnimacion.Program, "projection");
+		glUniformMatrix4fv(viewLocAnim, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(projLocAnim, 1, GL_FALSE, glm::value_ptr(projection));
+		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "viewPos"), camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
+		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "material.specular"), 0.05f, 0.05f, 0.05f);
+		glUniform1f(glGetUniformLocation(shaderAnimacion.Program, "material.shininess"), 32.0f);
+		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.direction"), -0.2f, -1.0f, -0.3f);
+		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.ambient"), 0.6f, 0.6f, 0.6f);
+		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.diffuse"), 0.6f, 0.6f, 0.6f);
+		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.specular"), 0.3f, 0.3f, 0.3f);
+
+		glm::mat4 modelVis = glm::mat4(1.0f);
+		modelVis = glm::translate(modelVis, glm::vec3(0.0f, 0.0f, -3.0f));
+		modelVis = glm::scale(modelVis, glm::vec3(0.005f, 0.005f, 0.005f));
+		modelVis = glm::translate(modelVis, glm::vec3(visPosX, 0.0f, 0.0f));
+		modelVis = glm::rotate(modelVis, glm::radians(visRotY + 180), glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(modelLocAnim, 1, GL_FALSE, glm::value_ptr(modelVis));
+
+
+
+
+		bool hayDesplazamiento = (std::abs(VisKF[visPlayIndex].visPosXInc) > 0.0001f);
+		bool hayGiro = (std::abs(VisKF[visPlayIndex].visRotYInc) > 0.0001f);
+
+		if (hayDesplazamiento || hayGiro)
 		{
-			shaderAnimacion.Use();
-			GLint modelLocAnim = glGetUniformLocation(shaderAnimacion.Program, "model");
-			GLint viewLocAnim = glGetUniformLocation(shaderAnimacion.Program, "view");
-			GLint projLocAnim = glGetUniformLocation(shaderAnimacion.Program, "projection");
-			glUniformMatrix4fv(viewLocAnim, 1, GL_FALSE, glm::value_ptr(view));
-			glUniformMatrix4fv(projLocAnim, 1, GL_FALSE, glm::value_ptr(projection));
-			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "viewPos"), camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
-			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "material.specular"), 0.05f, 0.05f, 0.05f);
-			glUniform1f(glGetUniformLocation(shaderAnimacion.Program, "material.shininess"), 32.0f);
-			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.direction"), -0.2f, -1.0f, -0.3f);
-			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.ambient"), 0.6f, 0.6f, 0.6f);
-			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.diffuse"), 0.6f, 0.6f, 0.6f);
-			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.specular"), 0.3f, 0.3f, 0.3f);
-
-			glm::mat4 modelVis = glm::mat4(1.0f);
-			modelVis = glm::translate(modelVis, glm::vec3(0.0f, 0.0f, -3.0f));
-			modelVis = glm::scale(modelVis, glm::vec3(0.005f, 0.005f, 0.005f));
-			glUniformMatrix4fv(modelLocAnim, 1, GL_FALSE, glm::value_ptr(modelVis));
-
-			tiempoAnimVisitante += deltaTime;
+			tiempoAnimVisitante += deltaTime * 0.8f;
 			visitante.Draw(shaderAnimacion, tiempoAnimVisitante);
-
-			lightingShader.Use();
-			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		}
+		else
+		{
+			
+			visitante.Draw(shaderAnimacion, poseFijaVisitante);
 		}
 
+		
 
+
+		lightingShader.Use();
+		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	
+
+
+	
+		// Modelos extras
 		model = glm::mat4(1);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
 		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
@@ -824,6 +844,8 @@ void DoMovement()
 
 	}
 
+
+
 	/*if (keys[GLFW_KEY_T])
 	{
 		pointLightPositions[0].x += 0.01f;
@@ -891,19 +913,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		}
 	}
 
-	// Tecla para controlar la animacion del visitante
-	if (key == GLFW_KEY_V && action == GLFW_PRESS)
-	{
-		animVisitante = !animVisitante;
-		visPlay = animVisitante;
-		if (!animVisitante) {
-			visPlayIndex = 0;
-			vis_i_curr_steps = 0;
-			visResetElements();
-			visInterpolation();
-		}
-		printf("Animacion Visitante: %s\n", animVisitante ? "ON" : "OFF");
-	}
+	
 
 	if (keys[GLFW_KEY_SPACE])
 	{
@@ -931,16 +941,23 @@ void Animation() {
 		expositorRotAntebrazo = 20.0f * sin(expositorTiempo * 5.0f);
 	}
 
+	
 	// ANIMACIÓN VISITANTE POR KEYFRAMES
 	if (visPlay) {
 		if (vis_i_curr_steps >= vis_i_max_steps) {
 			visPlayIndex++;
-			if (visPlayIndex > VIS_MAX_FRAMES - 2) {
+
+			if (visPlayIndex >= VIS_MAX_FRAMES - 1) {
 				visPlayIndex = 0;
-				visResetElements();
+				vis_i_curr_steps = 0;
+				visPosX = 0.0f;
+				visRotY = 0.0f;
+				visInterpolation();
 			}
-			vis_i_curr_steps = 0;
-			visInterpolation();
+			else {
+				vis_i_curr_steps = 0;
+				visInterpolation();
+			}
 		}
 		else {
 			visPosX += VisKF[visPlayIndex].visPosXInc;
