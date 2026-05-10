@@ -161,13 +161,17 @@ void visInterpolation(void) {
 
 
 Model* logoOracle;
-//ModeloAnimado logoAmazon((GLchar*)"Models/stands_1/amazon_animado.fbx");
+Model* logoPG;
+Model* logoAmazon;
 
 float tiempoOracle = 0.0f;
 float tiempoAmazon = 0.0f;
+float tiempoPG = 0.0f;
+
 
 bool playOracle = false;
 bool playAmazon = false;
+bool playPG = false;
 
 
 // Deltatime
@@ -220,6 +224,8 @@ int main()
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	logoOracle = new Model((char*)"Models/logos/oracle.obj");
+	logoAmazon = new Model((char*)"Models/logos/amazon.obj");
+	logoPG = new Model((char*)"Models/logos/pg.obj");
 
 	Shader lightingShader("Shader/lighting.vs", "Shader/lighting.frag");
 	Shader lampShader("Shader/lamp.vs", "Shader/lamp.frag");
@@ -684,19 +690,46 @@ int main()
 			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 			
-			glm::vec3 centro(-255.8f, 136.83f, -48.15f); //(oordenadas tomadas de la escena en lender
+			glm::vec3 centroOracle(-255.8f, 136.83f, -48.15f); //(oordenadas tomadas de la escena en lender
+			glm::vec3 centroPG(239.0f, 149.88f, -41.31f); 
+			glm::vec3 centroAmazon(7.27f, 141.24f, -44.42f); 
+
 
 			glm::mat4 modelOracle = glm::mat4(1.0f);
 			modelOracle = glm::translate(modelOracle, glm::vec3(0.0f, 0.0f, -3.0f));
 			modelOracle = glm::scale(modelOracle, glm::vec3(0.005f, 0.005f, 0.005f));
-			modelOracle = glm::translate(modelOracle, centro);          //mueve pivote al centro
+			modelOracle = glm::translate(modelOracle, centroOracle);          //mueve pivote al centroOracle
 
 			if (playOracle)
 				modelOracle = glm::rotate(modelOracle, tiempoOracle, glm::vec3(0.0f, 1.0f, 0.0f));
-			modelOracle = glm::translate(modelOracle, -centro);         //regresa pivote
+			modelOracle = glm::translate(modelOracle, -centroOracle);         //regresa pivote
 
 			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelOracle));
 			logoOracle->Draw(lightingShader);
+
+			glm::mat4 modelAmazon = glm::mat4(1.0f);
+			modelAmazon = glm::translate(modelAmazon, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelAmazon = glm::scale(modelAmazon, glm::vec3(0.005f, 0.005f, 0.005f));
+			modelAmazon = glm::translate(modelAmazon, centroAmazon);
+
+			if (playAmazon)
+				modelAmazon = glm::rotate(modelAmazon, tiempoAmazon, glm::vec3(0.0f, 1.0f, 0.0f));
+			modelAmazon = glm::translate(modelAmazon, -centroAmazon);
+
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelAmazon));
+			logoAmazon->Draw(lightingShader);
+
+			glm::mat4 modelPG = glm::mat4(1.0f);
+			modelPG = glm::translate(modelPG, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelPG = glm::scale(modelPG, glm::vec3(0.005f, 0.005f, 0.005f));
+			modelPG = glm::translate(modelPG, centroPG);
+
+			if (playPG)
+				modelPG = glm::rotate(modelPG, tiempoPG, glm::vec3(0.0f, 1.0f, 0.0f));
+			modelPG = glm::translate(modelPG, -centroPG);
+
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelPG));
+			logoPG->Draw(lightingShader);
 
 			lightingShader.Use();
 			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -938,6 +971,14 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		printf("Animacion Amazon: %s\n", playAmazon ? "ON" : "OFF");
 	}
 
+	//tecla 3 para controlar la rotaciónb del logo de P&G
+	if (key == GLFW_KEY_3 && action == GLFW_PRESS)
+	{
+		playPG = !playPG;
+		if (!playPG) tiempoPG = 0.0f;
+		printf("Animacion P&G: %s\n", playPG ? "ON" : "OFF");
+	}
+
 	if (keys[GLFW_KEY_SPACE])
 	{
 		active = !active;
@@ -988,6 +1029,9 @@ void Animation() {
 	}
 	if (playAmazon) {
 		tiempoAmazon += deltaTime;
+	}
+	if (playPG) {
+		tiempoPG += deltaTime;
 	}
 
 }
