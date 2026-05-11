@@ -177,6 +177,10 @@ bool playPG = false;
 float tiempoPerro = 0.0f;
 bool playPerro = false;
 
+// Camara de seguridad (animacion automatica)
+float tiempoCamera = 0.0f;
+float rotCamera = 0.0f;
+
 
 // Deltatime
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
@@ -274,6 +278,10 @@ int main()
 
 	//pumagua
 	Model pumagua((char*)"Models/extras/pumagua/pumagua.obj");
+
+	// Camara de seguridad
+	Model camBase((char*)"Models/extras/camara/cam_base.obj");
+	Model camCabeza((char*)"Models/extras/camara/cam_cabeza.obj");
 
 
 	// Modelos con animacion
@@ -734,6 +742,29 @@ int main()
 		mamp8.Draw(lightingShader);
 		pumagua.Draw(lightingShader);
 
+		//CAMARA DE SEGURIDAD
+		// Pivot = coordenadas del tornillo (Bolt.010) convertidas a OpenGL
+		glm::vec3 centroCamCabeza(-202.53f, 156.96f, -65.422f);
+
+		// Base fija
+		glm::mat4 modelCamBase = glm::mat4(1.0f);
+		modelCamBase = glm::translate(modelCamBase, glm::vec3(0.0f, 0.0f, -3.0f));
+		modelCamBase = glm::scale(modelCamBase, glm::vec3(0.005f, 0.005f, 0.005f));
+		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"),
+			1, GL_FALSE, glm::value_ptr(modelCamBase));
+		camBase.Draw(lightingShader);
+
+		// Cabeza giratoria
+		glm::mat4 modelCamCabeza = glm::mat4(1.0f);
+		modelCamCabeza = glm::translate(modelCamCabeza, glm::vec3(0.0f, 0.0f, -3.0f));
+		modelCamCabeza = glm::translate(modelCamCabeza, centroCamCabeza * 0.005f);     // pivot en espacio OpenGL
+		modelCamCabeza = glm::rotate(modelCamCabeza, glm::radians(rotCamera), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelCamCabeza = glm::translate(modelCamCabeza, -centroCamCabeza * 0.005f);    // regresa pivot
+		modelCamCabeza = glm::scale(modelCamCabeza, glm::vec3(0.005f, 0.005f, 0.005f));
+		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"),
+			1, GL_FALSE, glm::value_ptr(modelCamCabeza));
+		camCabeza.Draw(lightingShader);
+
 
 
 		// Also draw the lamp object, again binding the appropriate shader
@@ -1023,6 +1054,10 @@ void Animation() {
 	if (playPerro) {
 		tiempoPerro += deltaTime;
 	}
+
+	// Camara de seguridad — gira automaticamente de lado a lado cada 10 segundos
+	tiempoCamera += deltaTime;
+	rotCamera = 45.0f * sin(tiempoCamera * (glm::pi<float>() / 10.0f));
 
 }
 
