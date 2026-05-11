@@ -173,6 +173,10 @@ bool playOracle = false;
 bool playAmazon = false;
 bool playPG = false;
 
+// Perro Robot
+float tiempoPerro = 0.0f;
+bool playPerro = false;
+
 
 // Deltatime
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
@@ -238,26 +242,8 @@ int main()
 
 
 	//Modelos
-
 	// Modelos del puente
 	Model Puente((char*)"Models/Puente/Puente.obj");
-	
-
-	// Modelo del perro robot
-
-
-	
-//=======
-	//Model perroCuerpo((char*)"Models/perroRobot/cuerpo.obj");
-	//Model perroPDIU((char*)"Models/perroRobot/patadelanteraIzUp.obj");
-	//Model perroPDID((char*)"Models/perroRobot/patadelanteraIzDown.obj");
-	//Model perroPDDU((char*)"Models/perroRobot/patadelanteraDerUp.obj");
-	//Model perroPDDD((char*)"Models/perroRobot/patadelanteraDerDown.obj");
-	//Model perroPTIU((char*)"Models/perroRobot/patatraseraIzUp.obj");
-	//Model perroPTID((char*)"Models/perroRobot/patatraseraIzDown.obj");
-	//Model perroPTDU((char*)"Models/perroRobot/patatraseraDerUp.obj");
-	//Model perroPTDD((char*)"Models/perroRobot/patatraseraDerDown.obj");
-//ba0cdeacaf8e0c6ec4df1e431da83aec27993224
 
 
 	//mamparas basicas
@@ -290,8 +276,9 @@ int main()
 	Model pumagua((char*)"Models/extras/pumagua/pumagua.obj");
 
 
-	// Modelo del visitante con animacion
+	// Modelos con animacion
 	ModeloAnimado visitante((GLchar*)"Models/Visitante/visitante.fbx");
+	ModeloAnimado perroRobot((GLchar*)"Models/perroRobot/perro.fbx");
 
 
 
@@ -454,7 +441,7 @@ int main()
 
 
 	// Valores de los KeyFrames
-	
+
 	//                    posX     rotY
 	VisKF[0] = { -250.0f, 0,   0.0f, 0 };  // Inicio
 	VisKF[1] = { 80.0f, 0,   0.0f, 0 };  // Llega al final
@@ -606,18 +593,6 @@ int main()
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
 		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-//<<<<<<< HEAD
-//=======
-		/*
-		perroCuerpo.Draw(lightingShader);
-		perroPDIU.Draw(lightingShader);
-		perroPDID.Draw(lightingShader);
-		perroPDDU.Draw(lightingShader);
-		perroPDDD.Draw(lightingShader);
-		perroPTIU.Draw(lightingShader);
-		perroPTID.Draw(lightingShader);
-		perroPTDU.Draw(lightingShader);
-		perroPTDD.Draw(lightingShader);*/
 
 		stand_pag.Draw(lightingShader);
 		stand_amazon.Draw(lightingShader);
@@ -685,14 +660,22 @@ int main()
 			tiempoAnimVisitante += deltaTime;
 			visitante.Draw(shaderAnimacion, tiempoAnimVisitante);
 
+			// ---- PERRO ROBOT ----
+			glm::mat4 modelPerro = glm::mat4(1.0f);
+			modelPerro = glm::translate(modelPerro, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelPerro = glm::translate(modelPerro, glm::vec3(-1.12f, 0.52f, 0.31f));
+			modelPerro = glm::scale(modelPerro, glm::vec3(0.0001f, 0.0001f, 0.0001f));
+			glUniformMatrix4fv(modelLocAnim, 1, GL_FALSE, glm::value_ptr(modelPerro));
+			perroRobot.Draw(shaderAnimacion, tiempoPerro);
+
 			//dibujamos logo oracle
 			lightingShader.Use();
 			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-			
+
 			glm::vec3 centroOracle(-255.8f, 136.83f, -48.15f); //(oordenadas tomadas de la escena en lender
-			glm::vec3 centroPG(239.0f, 149.88f, -41.31f); 
-			glm::vec3 centroAmazon(7.27f, 141.24f, -44.42f); 
+			glm::vec3 centroPG(239.0f, 149.88f, -41.31f);
+			glm::vec3 centroAmazon(7.27f, 141.24f, -44.42f);
 
 
 			glm::mat4 modelOracle = glm::mat4(1.0f);
@@ -751,10 +734,6 @@ int main()
 		mamp8.Draw(lightingShader);
 		pumagua.Draw(lightingShader);
 
-
-		//modelo de logos rotando
-
-		//oracle
 
 
 		// Also draw the lamp object, again binding the appropriate shader
@@ -845,7 +824,7 @@ int main()
 // Moves/alters the camera positions based on user input
 void DoMovement()
 {
-	
+
 
 	// Camera controls
 	if (keys[GLFW_KEY_W] || keys[GLFW_KEY_UP])
@@ -929,7 +908,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 			keys[key] = false;
 		}
 	}
-	
+
 	// Tecla para controlar la animacion del presentador 
 	if (keys[GLFW_KEY_E])
 	{
@@ -979,6 +958,14 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		printf("Animacion P&G: %s\n", playPG ? "ON" : "OFF");
 	}
 
+	// Tecla P para controlar la animacion del perro robot
+	if (key == GLFW_KEY_P && action == GLFW_PRESS)
+	{
+		playPerro = !playPerro;
+		if (!playPerro) tiempoPerro = 0.0f;
+		printf("Animacion Perro Robot: %s\n", playPerro ? "ON" : "OFF");
+	}
+
 	if (keys[GLFW_KEY_SPACE])
 	{
 		active = !active;
@@ -1000,7 +987,7 @@ void Animation() {
 	if (animExpositor)
 	{
 		expositorTiempo += deltaTime;
-		expositorRotMano = 25.0f * sin(expositorTiempo * 5.0f );
+		expositorRotMano = 25.0f * sin(expositorTiempo * 5.0f);
 		expositorRotCabeza = 15.0f * sin(expositorTiempo * 1.5f);
 		expositorRotAntebrazo = 20.0f * sin(expositorTiempo * 5.0f);
 	}
@@ -1032,6 +1019,9 @@ void Animation() {
 	}
 	if (playPG) {
 		tiempoPG += deltaTime;
+	}
+	if (playPerro) {
+		tiempoPerro += deltaTime;
 	}
 
 }
