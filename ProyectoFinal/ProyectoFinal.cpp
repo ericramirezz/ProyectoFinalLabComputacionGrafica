@@ -164,8 +164,43 @@ void visInterpolation(void) {
 	VisKF[visPlayIndex].visRotYInc = (VisKF[visPlayIndex + 1].visRotY - VisKF[visPlayIndex].visRotY) / vis_i_max_steps;
 }
 
+// Animación del brazo robotico 
+#define BRAZO_MAX_FRAMES 9
+int brazo_i_max_steps = 100;
+int brazo_i_curr_steps = 0;
 
+typedef struct _brazo_frame {
+	float baseRot;     float baseRotInc;     // Rotación de la base (eje Y)
+	float hombroRot;   float hombroRotInc;   // Rotación del hombro
+	float codoRot;     float codoRotInc;     // Rotación del brazo/codo
+	float garraRot;    float garraRotInc;    // Rotación de la garra (muñeca)
+	int maxSteps;
+} BRAZO_FRAME;
 
+BRAZO_FRAME BrazoKF[BRAZO_MAX_FRAMES];
+int brazoPlayIndex = 0;
+bool brazoPlay = false;
+
+// Valores actuales aplicados al renderizar
+float brazo_baseRot = 0.0f;
+float brazo_hombroRot = 0.0f;
+float brazo_codoRot = 0.0f;
+float brazo_garraRot = 0.0f;
+
+void brazoResetElements(void) {
+	brazo_baseRot = BrazoKF[0].baseRot;
+	brazo_hombroRot = BrazoKF[0].hombroRot;
+	brazo_codoRot = BrazoKF[0].codoRot;
+	brazo_garraRot = BrazoKF[0].garraRot;
+}
+
+void brazoInterpolation(void) {
+	brazo_i_max_steps = BrazoKF[brazoPlayIndex].maxSteps;
+	BrazoKF[brazoPlayIndex].baseRotInc = (BrazoKF[brazoPlayIndex + 1].baseRot - BrazoKF[brazoPlayIndex].baseRot) / brazo_i_max_steps;
+	BrazoKF[brazoPlayIndex].hombroRotInc = (BrazoKF[brazoPlayIndex + 1].hombroRot - BrazoKF[brazoPlayIndex].hombroRot) / brazo_i_max_steps;
+	BrazoKF[brazoPlayIndex].codoRotInc = (BrazoKF[brazoPlayIndex + 1].codoRot - BrazoKF[brazoPlayIndex].codoRot) / brazo_i_max_steps;
+	BrazoKF[brazoPlayIndex].garraRotInc = (BrazoKF[brazoPlayIndex + 1].garraRot - BrazoKF[brazoPlayIndex].garraRot) / brazo_i_max_steps;
+}
 
 
 
@@ -283,6 +318,13 @@ int main()
 	Model presentadorCabeza((char*)"Models/Presentador/cabeza.obj");
 	Model presentadorAntebrazo((char*)"Models/Presentador/antebrazo.obj");
 	Model presentadorMano((char*)"Models/Presentador/mano.obj");
+
+	// Modelo del brazo robótico
+	Model brazoBase((char*)"Models/brazoRobot/base.obj");
+	Model brazoBase2((char*)"Models/brazoRobot/base2.obj");
+	Model brazoHombro((char*)"Models/brazoRobot/hombro.obj");
+	Model brazoBrazo((char*)"Models/brazoRobot/brazo.obj");
+	Model brazoGarra((char*)"Models/brazoRobot/garra.obj");
 
 	//pumagua
 	Model pumagua((char*)"Models/extras/pumagua/pumagua.obj");
@@ -454,7 +496,7 @@ int main()
 
 	
 
-	// Valores de los KeyFrames 
+	// Valores de los KeyFrames para la animacion del visitante
 	VisKF[0] = { 0.0f, 0,   0.0f, 0,  800 };  // Camina al extremo derecho
 	VisKF[1] = { 240.0f, 0,   0.0f, 0,   50 };  // Gira a ver stand (0 a 90 grados)
 	VisKF[2] = { 240.0f, 0,  90.0f, 0,  200 };  
@@ -471,6 +513,24 @@ int main()
 	visPlayIndex = 0;
 	vis_i_curr_steps = 0;
 	visInterpolation();
+
+
+	// Valores de los keyframes del brazo robótico
+	BrazoKF[0] = { 0.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,    100 };  // Reposo
+	BrazoKF[1] = { 45.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,    120 };  // Gira base 45°
+	BrazoKF[2] = { 45.0f, 0,   30.0f, 0,   10.0f, 0,    5.0f, 0,    150 };  // Baja a recoger (garra se balancea ligero)
+	BrazoKF[3] = { 45.0f, 0,   30.0f, 0,   10.0f, 0,   -5.0f, 0,     60 };  // Pausa: garra se balancea al otro lado
+	BrazoKF[4] = { 45.0f, 0,  -10.0f, 0,    -30.0f, 0,    0.0f, 0,    120 };  // Levanta 
+	BrazoKF[5] = { -45.0f, 0,  -10.0f, 0,    -30.0f, 0,    5.0f, 0,    180 };  // Gira al otro lado 
+	BrazoKF[6] = { -45.0f, 0,   28.0f, 0,    8.0f, 0,    5.0f, 0,    150 };  // Baja a soltar
+	BrazoKF[7] = { -45.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,    120 };  
+	BrazoKF[8] = { 0.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,      1 };
+
+	brazoResetElements();
+	brazoPlay = true;
+	brazoPlayIndex = 0;
+	brazo_i_curr_steps = 0;
+	brazoInterpolation();
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
@@ -657,6 +717,55 @@ int main()
 		manoMat = glm::translate(manoMat, glm::vec3(13.99f, -129.99f, 9.76f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(manoMat));
 		presentadorMano.Draw(lightingShader);
+
+
+
+		///////// BRAZO ROBÓTICO //////////
+		glm::mat4 modelBrazo = glm::mat4(1);
+		modelBrazo = glm::translate(modelBrazo, glm::vec3(0.0f, 0.0f, -3.0f));
+		modelBrazo = glm::scale(modelBrazo, glm::vec3(0.005f, 0.005f, 0.005f));
+
+		// Pivotes 
+		glm::vec3 pivotePedestal = glm::vec3(-95.23f, 117.33f, -48.66f); 
+		glm::vec3 pivoteHombro = glm::vec3(-96.10f, 117.48f, -49.04f); 
+		glm::vec3 pivoteCodo = glm::vec3(-95.63f, 124.29f, -50.42f);
+		glm::vec3 pivoteGarra = glm::vec3(-95.26f, 122.01f, -45.30f);
+
+		// NIVEL 0: BASE FIJA 
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelBrazo));
+		brazoBase.Draw(lightingShader);
+
+		// NIVEL 1: BASE 2
+		glm::mat4 mPedestal = modelBrazo;
+		mPedestal = glm::translate(mPedestal, pivotePedestal);
+		mPedestal = glm::rotate(mPedestal, glm::radians(brazo_baseRot), glm::vec3(0.0f, 1.0f, 0.0f));
+		mPedestal = glm::translate(mPedestal, -pivotePedestal);
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mPedestal));
+		brazoBase2.Draw(lightingShader);
+
+		// NIVEL 2: HOMBRO 
+		glm::mat4 mHombro = mPedestal;
+		mHombro = glm::translate(mHombro, pivoteHombro);
+		mHombro = glm::rotate(mHombro, glm::radians(brazo_hombroRot), glm::vec3(1.0f, 0.0f, 0.0f));
+		mHombro = glm::translate(mHombro, -pivoteHombro);
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mHombro));
+		brazoHombro.Draw(lightingShader);
+
+		// NIVEL 3: BRAZO/CODO 
+		glm::mat4 mBrazo = mHombro;
+		mBrazo = glm::translate(mBrazo, pivoteCodo);
+		mBrazo = glm::rotate(mBrazo, glm::radians(brazo_codoRot), glm::vec3(1.0f, 0.0f, 0.0f));
+		mBrazo = glm::translate(mBrazo, -pivoteCodo);
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mBrazo));
+		brazoBrazo.Draw(lightingShader);
+
+		// NIVEL 4: GARRA 
+		glm::mat4 mGarra = mBrazo;
+		mGarra = glm::translate(mGarra, pivoteGarra);
+		mGarra = glm::rotate(mGarra, glm::radians(brazo_garraRot), glm::vec3(1.0f, 0.0f, 0.0f));
+		mGarra = glm::translate(mGarra, -pivoteGarra);
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mGarra));
+		brazoGarra.Draw(lightingShader);
 
 		/////////////////////////////////////////////////////////////
 
@@ -913,6 +1022,12 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		}
 	}
 
+	// Pausar/reanudar animación del brazo robótico
+	if (keys[GLFW_KEY_B])
+	{
+		brazoPlay = !brazoPlay;
+	}
+
 	
 
 	if (keys[GLFW_KEY_SPACE])
@@ -928,6 +1043,8 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 			Light1 = glm::vec3(0);//Cuado es solo un valor en los 3 vectores pueden dejar solo una componente
 		}
 	}
+
+
 
 
 }
@@ -963,6 +1080,31 @@ void Animation() {
 			visPosX += VisKF[visPlayIndex].visPosXInc;
 			visRotY += VisKF[visPlayIndex].visRotYInc;
 			vis_i_curr_steps++;
+		}
+	}
+
+
+	// ANIMACIÓN BRAZO ROBÓTICO POR KEYFRAMES
+	if (brazoPlay) {
+		if (brazo_i_curr_steps >= brazo_i_max_steps) {
+			brazoPlayIndex++;
+			if (brazoPlayIndex >= BRAZO_MAX_FRAMES - 1) {
+				brazoPlayIndex = 0;
+				brazo_i_curr_steps = 0;
+				brazoResetElements();
+				brazoInterpolation();
+			}
+			else {
+				brazo_i_curr_steps = 0;
+				brazoInterpolation();
+			}
+		}
+		else {
+			brazo_baseRot += BrazoKF[brazoPlayIndex].baseRotInc;
+			brazo_hombroRot += BrazoKF[brazoPlayIndex].hombroRotInc;
+			brazo_codoRot += BrazoKF[brazoPlayIndex].codoRotInc;
+			brazo_garraRot += BrazoKF[brazoPlayIndex].garraRotInc;
+			brazo_i_curr_steps++;
 		}
 	}
 
