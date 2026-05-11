@@ -20,14 +20,13 @@
 
 using namespace std;
 
-GLint TextureFromFile(const char *path, string directory);
+GLint TextureFromFile(const char* path, string directory);
 
 class Model
 {
 public:
-	/*  Functions   */
 	// Constructor, expects a filepath to a 3D model.
-	Model(GLchar *path)
+	Model(GLchar* path)
 	{
 		this->loadModel(path);
 	}
@@ -45,13 +44,13 @@ private:
 	/*  Model Data  */
 	vector<Mesh> meshes;
 	string directory;
-	vector<Texture> textures_loaded;
+	static vector<Texture> textures_loaded; // static: compartido
 
 	void loadModel(string path)
 	{
 		// Read file via ASSIMP
 		Assimp::Importer importer;
-		const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
 		// Check for errors
 		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -80,7 +79,7 @@ private:
 		}
 	}
 
-	Mesh processMesh(aiMesh *mesh, const aiScene *scene)
+	Mesh processMesh(aiMesh* mesh, const aiScene* scene)
 	{
 		vector<Vertex> vertices;
 		vector<GLuint> indices;
@@ -158,7 +157,7 @@ private:
 		return Mesh(vertices, indices, textures);
 	}
 
-	vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName)
+	vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName)
 	{
 		vector<Texture> textures;
 
@@ -194,17 +193,26 @@ private:
 	}
 };
 
-GLint TextureFromFile(const char *path, string directory)
+GLint TextureFromFile(const char* path, string directory)
 {
-	//Generate texture ID and load texture data
+	// Cache global — evita recargar la misma imagen del disco
+	static map<string, GLuint> textureCache;
+
 	string filename = string(path);
 	filename = directory + '/' + filename;
+
+	// Si ya esta en cache, regresa el ID sin recargar
+	if (textureCache.count(filename)) {
+		printf("Texture (cached): %s\n", filename.c_str());
+		return textureCache[filename];
+	}
+
 	GLuint textureID;
 	glGenTextures(1, &textureID);
 
 	int width, height;
 
-	unsigned char *image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
+	unsigned char* image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
 	printf("Texture: %s -> %s (w:%d h:%d)\n", filename.c_str(), image ? "OK" : "FAILED", width, height);
 
 	if (!image) {
@@ -225,5 +233,11 @@ GLint TextureFromFile(const char *path, string directory)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SOIL_free_image_data(image);
 
+	// Guardar en cache para futuras peticiones
+	textureCache[filename] = textureID;
+
 	return textureID;
 }
+
+// Definicion del miembro estatico
+vector<Texture> Model::textures_loaded;

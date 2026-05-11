@@ -743,7 +743,6 @@ int main()
 		pumagua.Draw(lightingShader);
 
 		//CAMARA DE SEGURIDAD
-		// Pivot = coordenadas del tornillo (Bolt.010) convertidas a OpenGL
 		glm::vec3 centroCamCabeza(-202.53f, 156.96f, -65.422f);
 
 		// Base fija
