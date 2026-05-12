@@ -21,12 +21,12 @@
 
 using namespace std;
 
-GLint CargarTexturaAnimacion(const char *ruta, string directorio);
+GLint CargarTexturaAnimacion(const char* ruta, string directorio);
 
 class ModeloAnimado
 {
 public:
-	ModeloAnimado(GLchar *ruta)
+	ModeloAnimado(GLchar* ruta)
 	{
 		this->numHuesos = 0;
 		this->escena = this->importador.ReadFile(ruta, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
@@ -65,7 +65,7 @@ private:
 
 	void procesarNodo(aiNode* nodo, const aiScene* escena) { for (GLuint i = 0; i < nodo->mNumMeshes; i++) { aiMesh* malla = escena->mMeshes[nodo->mMeshes[i]]; this->mallas.push_back(this->procesarMalla(malla, escena)); } for (GLuint i = 0; i < nodo->mNumChildren; i++) { this->procesarNodo(nodo->mChildren[i], escena); } }
 
-	MallaAnimada procesarMalla(aiMesh *malla, const aiScene *escena)
+	MallaAnimada procesarMalla(aiMesh* malla, const aiScene* escena)
 	{
 		vector<Vertex> vertices; vector<GLuint> indices; vector<Texture> texturas; vector<PesosVertice> pesosHuesosPorVertice;
 		vertices.resize(malla->mNumVertices); pesosHuesosPorVertice.resize(malla->mNumVertices);
@@ -76,11 +76,57 @@ private:
 		return MallaAnimada(vertices, indices, texturas, pesosHuesosPorVertice);
 	}
 
-	vector<Texture> cargarTexturasDelMaterial(aiMaterial *mat, aiTextureType tipo, string nombreTipo) { vector<Texture> texturas; for (GLuint i = 0; i < mat->GetTextureCount(tipo); i++) { aiString str; mat->GetTexture(tipo, i, &str); GLboolean saltar = false; for (GLuint j = 0; j < this->texturasCargadas.size(); j++) { if (this->texturasCargadas[j].path == str) { texturas.push_back(this->texturasCargadas[j]); saltar = true; break; } } if (!saltar) { Texture textura; textura.id = CargarTexturaAnimacion(str.C_Str(), this->directorio); textura.type = nombreTipo; textura.path = str; texturas.push_back(textura); this->texturasCargadas.push_back(textura); } } return texturas; }
+	vector<Texture> cargarTexturasDelMaterial(aiMaterial* mat, aiTextureType tipo, string nombreTipo) { vector<Texture> texturas; for (GLuint i = 0; i < mat->GetTextureCount(tipo); i++) { aiString str; mat->GetTexture(tipo, i, &str); GLboolean saltar = false; for (GLuint j = 0; j < this->texturasCargadas.size(); j++) { if (this->texturasCargadas[j].path == str) { texturas.push_back(this->texturasCargadas[j]); saltar = true; break; } } if (!saltar) { Texture textura; textura.id = CargarTexturaAnimacion(str.C_Str(), this->directorio); textura.type = nombreTipo; textura.path = str; texturas.push_back(textura); this->texturasCargadas.push_back(textura); } } return texturas; }
 
 	void calcularTransformacionHuesos(double tiempoEnSegundos, vector<aiMatrix4x4>& transformaciones) { aiMatrix4x4 matrizIdentidad; if (this->escena->mNumAnimations == 0) { transformaciones.resize(this->numHuesos); for (GLuint i = 0; i < this->numHuesos; i++) transformaciones[i] = aiMatrix4x4(); return; } double ticksPorSegundo = this->escena->mAnimations[0]->mTicksPerSecond != 0 ? this->escena->mAnimations[0]->mTicksPerSecond : 25.0f; double tiempoEnTicks = tiempoEnSegundos * ticksPorSegundo; float tiempoAnimacion = fmod(tiempoEnTicks, this->escena->mAnimations[0]->mDuration); this->recorrerJerarquiaNodos(tiempoAnimacion, this->escena->mRootNode, matrizIdentidad); transformaciones.resize(this->numHuesos); for (GLuint i = 0; i < this->numHuesos; i++) { transformaciones[i] = this->matricesHuesos[i].final_world_transform; } }
 
-	void recorrerJerarquiaNodos(float tiempoAnimacion, const aiNode* nodo, const aiMatrix4x4& transformacionPadre) { string nombreNodo(nodo->mName.data); const aiAnimation* animacion = this->escena->mAnimations[0]; aiMatrix4x4 transformacionNodo = nodo->mTransformation; const aiNodeAnim* canal = this->buscarCanalAnimacion(animacion, nombreNodo); if (canal) { aiVector3D escala; this->interpolarEscala(escala, tiempoAnimacion, canal); aiMatrix4x4 matEscala; aiMatrix4x4::Scaling(escala, matEscala); aiQuaternion rotacion; this->interpolarRotacion(rotacion, tiempoAnimacion, canal); aiMatrix4x4 matRotacion = aiMatrix4x4(rotacion.GetMatrix()); aiVector3D posicion; this->interpolarPosicion(posicion, tiempoAnimacion, canal); aiMatrix4x4 matPosicion; aiMatrix4x4::Translation(posicion, matPosicion); transformacionNodo = matPosicion * matRotacion * matEscala; } aiMatrix4x4 transformacionGlobal = transformacionPadre * transformacionNodo; if (this->mapeoHuesos.find(nombreNodo) != this->mapeoHuesos.end()) { GLuint indiceHueso = this->mapeoHuesos[nombreNodo]; this->matricesHuesos[indiceHueso].final_world_transform = this->transformacionGlobalInversa * transformacionGlobal * this->matricesHuesos[indiceHueso].offset_matrix; } for (GLuint i = 0; i < nodo->mNumChildren; i++) { this->recorrerJerarquiaNodos(tiempoAnimacion, nodo->mChildren[i], transformacionGlobal); } }
+	void recorrerJerarquiaNodos(float tiempoAnimacion, const aiNode* nodo, const aiMatrix4x4& transformacionPadre)
+	{
+		string nombreNodo(nodo->mName.data);
+		const aiAnimation* animacion = this->escena->mAnimations[0];
+		aiMatrix4x4 transformacionNodo = nodo->mTransformation;
+
+		const aiNodeAnim* canal = this->buscarCanalAnimacion(animacion, nombreNodo);
+
+		if (canal)
+		{
+			aiVector3D escala;
+			this->interpolarEscala(escala, tiempoAnimacion, canal);
+			aiMatrix4x4 matEscala;
+			aiMatrix4x4::Scaling(escala, matEscala);
+
+			aiQuaternion rotacion;
+			this->interpolarRotacion(rotacion, tiempoAnimacion, canal);
+			aiMatrix4x4 matRotacion = aiMatrix4x4(rotacion.GetMatrix());
+
+			aiVector3D posicion;
+			this->interpolarPosicion(posicion, tiempoAnimacion, canal);
+
+			if (nombreNodo.find("Hips") != string::npos || nombreNodo.find("hips") != string::npos)
+			{
+				posicion.x = 0.0f;
+				posicion.z = 0.0f;
+			}
+
+			aiMatrix4x4 matPosicion;
+			aiMatrix4x4::Translation(posicion, matPosicion);
+			transformacionNodo = matPosicion * matRotacion * matEscala;
+		}
+
+		aiMatrix4x4 transformacionGlobal = transformacionPadre * transformacionNodo;
+
+		if (this->mapeoHuesos.find(nombreNodo) != this->mapeoHuesos.end())
+		{
+			GLuint indiceHueso = this->mapeoHuesos[nombreNodo];
+			this->matricesHuesos[indiceHueso].final_world_transform =
+				this->transformacionGlobalInversa * transformacionGlobal * this->matricesHuesos[indiceHueso].offset_matrix;
+		}
+
+		for (GLuint i = 0; i < nodo->mNumChildren; i++)
+		{
+			this->recorrerJerarquiaNodos(tiempoAnimacion, nodo->mChildren[i], transformacionGlobal);
+		}
+	}
 
 	const aiNodeAnim* buscarCanalAnimacion(const aiAnimation* animacion, const string& nombreNodo) { for (GLuint i = 0; i < animacion->mNumChannels; i++) { const aiNodeAnim* canal = animacion->mChannels[i]; if (string(canal->mNodeName.data) == nombreNodo) return canal; } return nullptr; }
 
@@ -95,4 +141,4 @@ private:
 	GLuint buscarIndiceEscala(float tiempoAnimacion, const aiNodeAnim* canal) { for (GLuint i = 0; i < canal->mNumScalingKeys - 1; i++) { if (tiempoAnimacion < (float)canal->mScalingKeys[i + 1].mTime) return i; } return 0; }
 };
 
-GLint CargarTexturaAnimacion(const char *ruta, string directorio) { string nombreArchivo = string(ruta); nombreArchivo = directorio + '/' + nombreArchivo; GLuint idTextura; glGenTextures(1, &idTextura); int ancho, alto; unsigned char *imagen = SOIL_load_image(nombreArchivo.c_str(), &ancho, &alto, 0, SOIL_LOAD_RGBA); printf("Textura Anim: %s -> %s (w:%d h:%d)\n", nombreArchivo.c_str(), imagen ? "OK" : "FAILED", ancho, alto); if (!imagen) { printf("  SOIL Error: %s\n", SOIL_last_result()); return idTextura; } glBindTexture(GL_TEXTURE_2D, idTextura); glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ancho, alto, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagen); glGenerateMipmap(GL_TEXTURE_2D); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); glBindTexture(GL_TEXTURE_2D, 0); SOIL_free_image_data(imagen); return idTextura; }
+GLint CargarTexturaAnimacion(const char* ruta, string directorio) { string nombreArchivo = string(ruta); nombreArchivo = directorio + '/' + nombreArchivo; GLuint idTextura; glGenTextures(1, &idTextura); int ancho, alto; unsigned char* imagen = SOIL_load_image(nombreArchivo.c_str(), &ancho, &alto, 0, SOIL_LOAD_RGBA); printf("Textura Anim: %s -> %s (w:%d h:%d)\n", nombreArchivo.c_str(), imagen ? "OK" : "FAILED", ancho, alto); if (!imagen) { printf("  SOIL Error: %s\n", SOIL_last_result()); return idTextura; } glBindTexture(GL_TEXTURE_2D, idTextura); glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ancho, alto, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagen); glGenerateMipmap(GL_TEXTURE_2D); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); glBindTexture(GL_TEXTURE_2D, 0); SOIL_free_image_data(imagen); return idTextura; }
