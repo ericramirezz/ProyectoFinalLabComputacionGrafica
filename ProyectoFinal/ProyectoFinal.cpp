@@ -1,5 +1,5 @@
 ﻿// Medina Villa Samuel 320249538
-// Eric Ramírez 423095203
+// Eric Ram�rez 423095203
 // Proyecto Final
 // Fecha de entrega: 13 de mayo de 2026
 
@@ -122,7 +122,7 @@ float tail = 0.0f;
 
 float IncliDog = 0.0f;
 
-//  ANIMACIÓN PRESENTADOR 
+//  ANIMACI�N PRESENTADOR 
 float expositorRotMano = 0.0f;
 float expositorRotAntebrazo = 0.0f;
 float expositorRotCabeza = 0.0f;
@@ -157,13 +157,14 @@ void visResetElements(void) {
 }
 
 void visInterpolation(void) {
-	
+
 	vis_i_max_steps = VisKF[visPlayIndex].maxSteps;
 
 	VisKF[visPlayIndex].visPosXInc = (VisKF[visPlayIndex + 1].visPosX - VisKF[visPlayIndex].visPosX) / vis_i_max_steps;
 	VisKF[visPlayIndex].visRotYInc = (VisKF[visPlayIndex + 1].visRotY - VisKF[visPlayIndex].visRotY) / vis_i_max_steps;
 }
 
+// Animaci�n del brazo robotico 
 #define BRAZO_MAX_FRAMES 9
 int brazo_i_max_steps = 100;
 int brazo_i_curr_steps = 0;
@@ -201,6 +202,7 @@ void brazoInterpolation(void) {
 	BrazoKF[brazoPlayIndex].garraRotInc = (BrazoKF[brazoPlayIndex + 1].garraRot - BrazoKF[brazoPlayIndex].garraRot) / brazo_i_max_steps;
 }
 
+
 Model* logoOracle;
 Model* logoPG;
 Model* logoAmazon;
@@ -221,6 +223,7 @@ bool playPerro = false;
 // Camara de seguridad (animacion automatica)
 float tiempoCamera = 0.0f;
 float rotCamera = 0.0f;
+
 
 // Deltatime
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
@@ -290,7 +293,7 @@ int main()
 	Model Puente((char*)"Models/Puente/Puente.obj");
 
 
-	//Lamparas basicas
+	//mamparas basicas
 	Model mamp1((char*)"Models/stands_2/mamp_1.obj");
 	Model mamp2((char*)"Models/stands_2/mamp_2.obj");
 	Model mamp3((char*)"Models/stands_2/mamp_3.obj");
@@ -325,6 +328,9 @@ int main()
 
 	//pumagua
 	Model pumagua((char*)"Models/extras/pumagua/pumagua.obj");
+
+	// Lampara del techo
+	Model lampara((char*)"Models/extras/lampara/lampara.obj");
 
 	// Camara de seguridad
 	Model camBase((char*)"Models/extras/camara/cam_base.obj");
@@ -462,6 +468,8 @@ int main()
 	facesExterior.push_back("SkyboxExterior/front.jpg");
 	facesExterior.push_back("SkyboxExterior/back.jpg");
 
+	GLuint cubemapTextureExterior = TextureLoading::LoadCubemap(facesExterior);
+
 
 
 	// Skybox interior NOCHE
@@ -481,33 +489,23 @@ int main()
 	facesExteriorNoche.push_back("SkyboxExteriorNoche/left.jpg");
 	facesExteriorNoche.push_back("SkyboxExteriorNoche/top.jpg");
 	facesExteriorNoche.push_back("SkyboxExteriorNoche/bottom.jpg");
-	facesExteriorNoche.push_back("SkyboxExteriorNoche/back.jpg");
 	facesExteriorNoche.push_back("SkyboxExteriorNoche/front.jpg");
+	facesExteriorNoche.push_back("SkyboxExteriorNoche/back.jpg");
 
-	GLuint cubemapTextureExterior = TextureLoading::LoadCubemap(facesExterior);
 	GLuint cubemapTextureExteriorNoche = TextureLoading::LoadCubemap(facesExteriorNoche);
 
-	// Restaurar el binding del cubemap interior
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-
-
-	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 100.0f);
-
-
-	
 
 	// Valores de los KeyFrames para la animacion del visitante
 	VisKF[0] = { 0.0f, 0,   0.0f, 0,  800 };  // Camina al extremo derecho
 	VisKF[1] = { 240.0f, 0,   0.0f, 0,   50 };  // Gira a ver stand (0 a 90 grados)
-	VisKF[2] = { 240.0f, 0,  90.0f, 0,  200 };  
+	VisKF[2] = { 240.0f, 0,  90.0f, 0,  200 };
 	VisKF[3] = { 240.0f, 0,  90.0f, 0,   50 };  //Gira para regresar 
 	VisKF[4] = { 240.0f, 0, 180.0f, 0, 1600 };  //Camina al otro extremo
 	VisKF[5] = { -250.0f, 0, 180.0f, 0,   50 };  // Gira a ver stand 
-	VisKF[6] = { -250.0f, 0, 270.0f, 0,  200 };  
-	VisKF[7] = { -250.0f, 0, 270.0f, 0,   50 };  
+	VisKF[6] = { -250.0f, 0, 270.0f, 0,  200 };
+	VisKF[7] = { -250.0f, 0, 270.0f, 0,   50 };
 	VisKF[8] = { -250.0f, 0, 360.0f, 0,  950 };  //Camina de vuelta al centro
-	VisKF[9] = { 0.0f, 0, 360.0f, 0,    1 };  
+	VisKF[9] = { 0.0f, 0, 360.0f, 0,    1 };
 
 	visResetElements();
 	visPlay = true;
@@ -524,7 +522,7 @@ int main()
 	BrazoKF[4] = { 45.0f, 0,  -10.0f, 0,    -30.0f, 0,    0.0f, 0,    120 };  // Levanta 
 	BrazoKF[5] = { -45.0f, 0,  -10.0f, 0,    -30.0f, 0,    5.0f, 0,    180 };  // Gira al otro lado 
 	BrazoKF[6] = { -45.0f, 0,   28.0f, 0,    8.0f, 0,    5.0f, 0,    150 };  // Baja a soltar
-	BrazoKF[7] = { -45.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,    120 };  
+	BrazoKF[7] = { -45.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,    120 };
 	BrazoKF[8] = { 0.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,      1 };
 
 	brazoResetElements();
@@ -553,6 +551,10 @@ int main()
 
 		// OpenGL options
 		glEnable(GL_DEPTH_TEST);
+
+		// Matrices de camara y proyeccion — disponibles en todo el loop
+		glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 1000.0f);
+		glm::mat4 view = camera.GetViewMatrix();
 
 		// Skybox Exterior
 		glm::mat4 viewExt = camera.GetViewMatrix();
@@ -631,8 +633,7 @@ int main()
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "material.shininess"), 5.0f);
 
 		// Create camera transformations
-		glm::mat4 view;
-		view = camera.GetViewMatrix();
+		// (view y projection ya declarados al inicio del loop)
 
 		// Get the uniform locations
 		GLint modelLoc = glGetUniformLocation(lightingShader.Program, "model");
@@ -648,9 +649,8 @@ int main()
 
 
 
-		//Carga de modelo 
-		// Puente
 		model = glm::mat4(1);
+
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
 		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -664,20 +664,7 @@ int main()
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
 		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-//<<<<<<< HEAD
-//=======
-		/*
-		perroCuerpo.Draw(lightingShader);
-		perroPDIU.Draw(lightingShader);
-		perroPDID.Draw(lightingShader);
-		perroPDDU.Draw(lightingShader);
-		perroPDDD.Draw(lightingShader);
-		perroPTIU.Draw(lightingShader);
-		perroPTID.Draw(lightingShader);
-		perroPTDU.Draw(lightingShader);
-		perroPTDD.Draw(lightingShader);*/
 
-//>>>>>>> ba0cdeacaf8e0c6ec4df1e431da83aec27993224
 		stand_pag.Draw(lightingShader);
 		stand_amazon.Draw(lightingShader);
 		stand_oracle.Draw(lightingShader);
@@ -722,14 +709,14 @@ int main()
 
 
 
-		///////// BRAZO ROB�TICO //////////
+		///////// BRAZO ROBÓTICO //////////
 		glm::mat4 modelBrazo = glm::mat4(1);
 		modelBrazo = glm::translate(modelBrazo, glm::vec3(0.0f, 0.0f, -3.0f));
 		modelBrazo = glm::scale(modelBrazo, glm::vec3(0.005f, 0.005f, 0.005f));
 
 		// Pivotes 
-		glm::vec3 pivotePedestal = glm::vec3(-95.23f, 117.33f, -48.66f); 
-		glm::vec3 pivoteHombro = glm::vec3(-96.10f, 117.48f, -49.04f); 
+		glm::vec3 pivotePedestal = glm::vec3(-95.23f, 117.33f, -48.66f);
+		glm::vec3 pivoteHombro = glm::vec3(-96.10f, 117.48f, -49.04f);
 		glm::vec3 pivoteCodo = glm::vec3(-95.63f, 124.29f, -50.42f);
 		glm::vec3 pivoteGarra = glm::vec3(-95.26f, 122.01f, -45.30f);
 
@@ -768,57 +755,60 @@ int main()
 		mGarra = glm::translate(mGarra, -pivoteGarra);
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mGarra));
 		brazoGarra.Draw(lightingShader);
-
-		/////////////////////////////////////////////////////////////
-
-		/////// VISITANTE CAMINANDO //////////
-	
-		shaderAnimacion.Use();
-		GLint modelLocAnim = glGetUniformLocation(shaderAnimacion.Program, "model");
-		GLint viewLocAnim = glGetUniformLocation(shaderAnimacion.Program, "view");
-		GLint projLocAnim = glGetUniformLocation(shaderAnimacion.Program, "projection");
-		glUniformMatrix4fv(viewLocAnim, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projLocAnim, 1, GL_FALSE, glm::value_ptr(projection));
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "viewPos"), camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "material.specular"), 0.05f, 0.05f, 0.05f);
-		glUniform1f(glGetUniformLocation(shaderAnimacion.Program, "material.shininess"), 32.0f);
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.direction"), -0.2f, -1.0f, -0.3f);
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.ambient"), 0.6f, 0.6f, 0.6f);
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.diffuse"), 0.6f, 0.6f, 0.6f);
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.specular"), 0.3f, 0.3f, 0.3f);
-
-		glm::mat4 modelVis = glm::mat4(1.0f);
-		modelVis = glm::translate(modelVis, glm::vec3(0.0f, 0.0f, -3.0f));
-		modelVis = glm::scale(modelVis, glm::vec3(0.005f, 0.005f, 0.005f));
-		modelVis = glm::translate(modelVis, glm::vec3(visPosX, 0.0f, 0.0f));
-		modelVis = glm::rotate(modelVis, glm::radians(visRotY + 180), glm::vec3(0.0f, 1.0f, 0.0f));
-		glUniformMatrix4fv(modelLocAnim, 1, GL_FALSE, glm::value_ptr(modelVis));
-
-
-
-
-		bool hayDesplazamiento = (std::abs(VisKF[visPlayIndex].visPosXInc) > 0.0001f);
-		bool hayGiro = (std::abs(VisKF[visPlayIndex].visRotYInc) > 0.0001f);
-
-		if (hayDesplazamiento || hayGiro)
+		///////// VISITANTE CAMINANDO //////////
 		{
-			tiempoAnimVisitante += deltaTime * 0.8f;
-			visitante.Draw(shaderAnimacion, tiempoAnimVisitante);
-		}
-		else
-		{
-			
-			visitante.Draw(shaderAnimacion, poseFijaVisitante);
-		}
+			shaderAnimacion.Use();
+			GLint modelLocAnim = glGetUniformLocation(shaderAnimacion.Program, "model");
+			GLint viewLocAnim = glGetUniformLocation(shaderAnimacion.Program, "view");
+			GLint projLocAnim = glGetUniformLocation(shaderAnimacion.Program, "projection");
+			glUniformMatrix4fv(viewLocAnim, 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(projLocAnim, 1, GL_FALSE, glm::value_ptr(projection));
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "viewPos"), camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "material.specular"), 0.05f, 0.05f, 0.05f);
+			glUniform1f(glGetUniformLocation(shaderAnimacion.Program, "material.shininess"), 32.0f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.direction"), -0.2f, -1.0f, -0.3f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.ambient"), 0.6f, 0.6f, 0.6f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.diffuse"), 0.6f, 0.6f, 0.6f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.specular"), 0.3f, 0.3f, 0.3f);
 
-		
+			glm::mat4 modelVis = glm::mat4(1.0f);
+			modelVis = glm::translate(modelVis, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelVis = glm::scale(modelVis, glm::vec3(0.005f, 0.005f, 0.005f));
+			modelVis = glm::translate(modelVis, glm::vec3(visPosX, 0.0f, 0.0f));
+			modelVis = glm::rotate(modelVis, glm::radians(visRotY + 180), glm::vec3(0.0f, 1.0f, 0.0f));
+			glUniformMatrix4fv(modelLocAnim, 1, GL_FALSE, glm::value_ptr(modelVis));
+
+
+
+
+			bool hayDesplazamiento = (std::abs(VisKF[visPlayIndex].visPosXInc) > 0.0001f);
+			bool hayGiro = (std::abs(VisKF[visPlayIndex].visRotYInc) > 0.0001f);
+
+			if (hayDesplazamiento || hayGiro)
+			{
+				tiempoAnimVisitante += deltaTime * 0.8f;
+				visitante.Draw(shaderAnimacion, tiempoAnimVisitante);
+			}
+			else
+			{
+
+				visitante.Draw(shaderAnimacion, poseFijaVisitante);
+			}
+
+
+
+
+			lightingShader.Use();
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
 
 
 			// ---- PERRO ROBOT ----
 			glm::mat4 modelPerro = glm::mat4(1.0f);
 			modelPerro = glm::translate(modelPerro, glm::vec3(0.0f, 0.0f, -3.0f));
 			modelPerro = glm::translate(modelPerro, glm::vec3(-1.12f, 0.52f, 0.31f));
-			modelPerro = glm::scale(modelPerro, glm::vec3(0.0001f, 0.0001f, 0.0001f));
+			modelPerro = glm::scale(modelPerro, glm::vec3(0.00001f, 0.00001f, 0.00001f));
 			glUniformMatrix4fv(modelLocAnim, 1, GL_FALSE, glm::value_ptr(modelPerro));
 			perroRobot.Draw(shaderAnimacion, tiempoPerro);
 
@@ -868,13 +858,12 @@ int main()
 			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelPG));
 			logoPG->Draw(lightingShader);
 
-		lightingShader.Use();
-		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	
+			lightingShader.Use();
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		}
 
 
-	
 		// Modelos extras
 		model = glm::mat4(1);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
@@ -889,6 +878,23 @@ int main()
 		mamp7.Draw(lightingShader);
 		mamp8.Draw(lightingShader);
 		pumagua.Draw(lightingShader);
+
+		// ---- 4 LAMPARAS DEL TECHO ----
+		glm::vec3 posicionesLampara[] = {
+			glm::vec3(-452.45f, 295.96f,  16.30f),
+			glm::vec3(-134.94f, 297.21f,  16.30f),
+			glm::vec3(147.70f, 297.21f,  16.30f),
+			glm::vec3(427.34f, 297.21f,  16.30f)
+		};
+		for (int i = 0; i < 4; i++) {
+			glm::mat4 modelLampara = glm::mat4(1.0f);
+			modelLampara = glm::translate(modelLampara, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelLampara = glm::scale(modelLampara, glm::vec3(0.005f, 0.005f, 0.005f));
+			modelLampara = glm::translate(modelLampara, posicionesLampara[i]);
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"),
+				1, GL_FALSE, glm::value_ptr(modelLampara));
+			lampara.Draw(lightingShader);
+		}
 
 		//CAMARA DE SEGURIDAD
 		glm::vec3 centroCamCabeza(-202.53f, 156.96f, -65.422f);
@@ -952,7 +958,7 @@ int main()
 		// Modelo para posicionar y escalar la caja alrededor del puente
 		model = glm::mat4(1);
 		model = glm::translate(model, glm::vec3(-0.0413f, 0.6800f, -2.9475f));// Centro del puente
-		model = glm::scale(model, glm::vec3(1.4619f, 0.1850f, 0.4875f));    // Imagenes al tamaño del puente
+		model = glm::scale(model, glm::vec3(1.4619f, 0.1850f, 0.4875f));    // Imagenes al tama�o del puente
 		glUniformMatrix4fv(glGetUniformLocation(skyboxshader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
 		glBindVertexArray(skyboxVAO);
@@ -1107,6 +1113,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		brazoPlay = !brazoPlay;
 	}
 
+
 	//tecla 1 para controlar la rotación del logo de oracle
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS)
 	{
@@ -1157,7 +1164,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 
 }
 void Animation() {
-	// ANIMACIÓN PRESENTADOR 
+	// ANIMACI�N PRESENTADOR 
 	if (animExpositor)
 	{
 		expositorTiempo += deltaTime;
@@ -1165,6 +1172,7 @@ void Animation() {
 		expositorRotCabeza = 15.0f * sin(expositorTiempo * 1.5f);
 		expositorRotAntebrazo = 20.0f * sin(expositorTiempo * 5.0f);
 	}
+
 
 	// ANIMACI�N VISITANTE POR KEYFRAMES
 	if (visPlay) {
@@ -1190,8 +1198,22 @@ void Animation() {
 		}
 	}
 
+	//ANIMACIONES DE ROTACI�N DE LOGOS
+	if (playOracle) {
+		tiempoOracle += deltaTime;
+	}
+	if (playAmazon) {
+		tiempoAmazon += deltaTime;
+	}
+	if (playPG) {
+		tiempoPG += deltaTime;
+	}
+	if (playPerro) {
+		tiempoPerro += deltaTime;
+	}
 
-	// ANIMACI�N BRAZO ROB�TICO POR KEYFRAMES
+
+	// ANIMACIÓN BRAZO ROBÓTICO POR KEYFRAMES
 	if (brazoPlay) {
 		if (brazo_i_curr_steps >= brazo_i_max_steps) {
 			brazoPlayIndex++;
@@ -1213,20 +1235,6 @@ void Animation() {
 			brazo_garraRot += BrazoKF[brazoPlayIndex].garraRotInc;
 			brazo_i_curr_steps++;
 		}
-	}
-
-	//ANIMACIONES DE ROTACIÓN DE LOGOS
-	if (playOracle) {
-		tiempoOracle += deltaTime;
-	}
-	if (playAmazon) {
-		tiempoAmazon += deltaTime;
-	}
-	if (playPG) {
-		tiempoPG += deltaTime;
-	}
-	if (playPerro) {
-		tiempoPerro += deltaTime;
 	}
 
 	// Camara de seguridad — gira automaticamente de lado a lado cada 10 segundos

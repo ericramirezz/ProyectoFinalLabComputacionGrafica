@@ -1,7 +1,7 @@
 # Blender 5.1.0 MTL File: 'puente_vacio.blend'
 # www.blender.org
 
-newmtl Material.044
+newmtl Material_0
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
@@ -14,4 +14,5 @@ Pc 0.000000
 Pcr 0.030000
 aniso 0.000000
 anisor 0.000000
-map_Kd pumagua.png
+map_Kd lamp_text_1.jpg
+map_Bump -bm 1.000000 lamp_text_3.jpg
