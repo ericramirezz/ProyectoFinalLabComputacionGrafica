@@ -1,5 +1,5 @@
-// Medina Villa Samuel 320249538
-// Eric Ramírez 423095203
+ï»¿// Medina Villa Samuel 320249538
+// Eric Ramï¿½rez 423095203
 // Proyecto Final
 // Fecha de entrega: 13 de mayo de 2026
 
@@ -124,7 +124,7 @@ float tail = 0.0f;
 
 float IncliDog = 0.0f;
 
-//  ANIMACIÓN PRESENTADOR 
+//  ANIMACIï¿½N PRESENTADOR 
 float expositorRotMano = 0.0f;
 float expositorRotAntebrazo = 0.0f;
 float expositorRotCabeza = 0.0f;
@@ -159,23 +159,23 @@ void visResetElements(void) {
 }
 
 void visInterpolation(void) {
-	
+
 	vis_i_max_steps = VisKF[visPlayIndex].maxSteps;
 
 	VisKF[visPlayIndex].visPosXInc = (VisKF[visPlayIndex + 1].visPosX - VisKF[visPlayIndex].visPosX) / vis_i_max_steps;
 	VisKF[visPlayIndex].visRotYInc = (VisKF[visPlayIndex + 1].visRotY - VisKF[visPlayIndex].visRotY) / vis_i_max_steps;
 }
 
-// Animación del brazo robotico 
+// Animaciï¿½n del brazo robotico 
 #define BRAZO_MAX_FRAMES 9
 int brazo_i_max_steps = 100;
 int brazo_i_curr_steps = 0;
 
 typedef struct _brazo_frame {
-	float baseRot;     float baseRotInc;     // Rotación de la base (eje Y)
-	float hombroRot;   float hombroRotInc;   // Rotación del hombro
-	float codoRot;     float codoRotInc;     // Rotación del brazo/codo
-	float garraRot;    float garraRotInc;    // Rotación de la garra (muñeca)
+	float baseRot;     float baseRotInc;     // Rotaciï¿½n de la base (eje Y)
+	float hombroRot;   float hombroRotInc;   // Rotaciï¿½n del hombro
+	float codoRot;     float codoRotInc;     // Rotaciï¿½n del brazo/codo
+	float garraRot;    float garraRotInc;    // Rotaciï¿½n de la garra (muï¿½eca)
 	int maxSteps;
 } BRAZO_FRAME;
 
@@ -205,8 +205,26 @@ void brazoInterpolation(void) {
 }
 
 
+Model* logoOracle;
+Model* logoPG;
+Model* logoAmazon;
+
+float tiempoOracle = 0.0f;
+float tiempoAmazon = 0.0f;
+float tiempoPG = 0.0f;
 
 
+bool playOracle = false;
+bool playAmazon = false;
+bool playPG = false;
+
+// Perro Robot
+float tiempoPerro = 0.0f;
+bool playPerro = false;
+
+// Camara de seguridad (animacion automatica)
+float tiempoCamera = 0.0f;
+float rotCamera = 0.0f;
 
 
 // Deltatime
@@ -258,7 +276,9 @@ int main()
 	// Define the viewport dimensions
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-
+	logoOracle = new Model((char*)"Models/logos/oracle.obj");
+	logoAmazon = new Model((char*)"Models/logos/amazon.obj");
+	logoPG = new Model((char*)"Models/logos/pg.obj");
 
 	Shader lightingShader("Shader/lighting.vs", "Shader/lighting.frag");
 	Shader lampShader("Shader/lamp.vs", "Shader/lamp.frag");
@@ -271,29 +291,11 @@ int main()
 
 
 	//Modelos
-
 	// Modelos del puente
 	Model Puente((char*)"Models/Puente/Puente.obj");
-	
-
-	// Modelo del perro robot
 
 
-	
-//=======
-	//Model perroCuerpo((char*)"Models/perroRobot/cuerpo.obj");
-	//Model perroPDIU((char*)"Models/perroRobot/patadelanteraIzUp.obj");
-	//Model perroPDID((char*)"Models/perroRobot/patadelanteraIzDown.obj");
-	//Model perroPDDU((char*)"Models/perroRobot/patadelanteraDerUp.obj");
-	//Model perroPDDD((char*)"Models/perroRobot/patadelanteraDerDown.obj");
-	//Model perroPTIU((char*)"Models/perroRobot/patatraseraIzUp.obj");
-	//Model perroPTID((char*)"Models/perroRobot/patatraseraIzDown.obj");
-	//Model perroPTDU((char*)"Models/perroRobot/patatraseraDerUp.obj");
-	//Model perroPTDD((char*)"Models/perroRobot/patatraseraDerDown.obj");
-//ba0cdeacaf8e0c6ec4df1e431da83aec27993224
-
-
-	//Lamparas basicas
+	//mamparas basicas
 	Model mamp1((char*)"Models/stands_2/mamp_1.obj");
 	Model mamp2((char*)"Models/stands_2/mamp_2.obj");
 	Model mamp3((char*)"Models/stands_2/mamp_3.obj");
@@ -302,8 +304,6 @@ int main()
 	Model mamp6((char*)"Models/stands_2/mamp_6.obj");
 	Model mamp7((char*)"Models/stands_2/mamp_7.obj");
 	Model mamp8((char*)"Models/stands_2/mamp_8.obj");
-
-
 
 	//stands de empresas
 	Model stand_pag((char*)"Models/stands_1/pg.obj");
@@ -321,7 +321,7 @@ int main()
 	Model presentadorAntebrazo((char*)"Models/Presentador/antebrazo.obj");
 	Model presentadorMano((char*)"Models/Presentador/mano.obj");
 
-	// Modelo del brazo robótico
+	// Modelo del brazo robï¿½tico
 	Model brazoBase((char*)"Models/brazoRobot/base.obj");
 	Model brazoBase2((char*)"Models/brazoRobot/base2.obj");
 	Model brazoHombro((char*)"Models/brazoRobot/hombro.obj");
@@ -331,15 +331,25 @@ int main()
 	//pumagua
 	Model pumagua((char*)"Models/extras/pumagua/pumagua.obj");
 
+
 	//Luna
 	Model luna((char*)"Models/extras/luna/luna.obj");
 
 	//Sol
 	Model sol((char*)"Models/extras/sol/sol.obj");
 
+	// Lampara del techo
+	Model lampara((char*)"Models/extras/lampara/lampara.obj");
 
-	// Modelo del visitante con animacion
+	// Camara de seguridad
+	Model camBase((char*)"Models/extras/camara/cam_base.obj");
+	Model camCabeza((char*)"Models/extras/camara/cam_cabeza.obj");
+
+
+
+	// Modelos con animacion
 	ModeloAnimado visitante((GLchar*)"Models/Visitante/visitante.fbx");
+	ModeloAnimado perroRobot((GLchar*)"Models/perroRobot/perro.fbx");
 
 
 
@@ -468,6 +478,8 @@ int main()
 	facesExterior.push_back("SkyboxExterior/front.jpg");
 	facesExterior.push_back("SkyboxExterior/back.jpg");
 
+	GLuint cubemapTextureExterior = TextureLoading::LoadCubemap(facesExterior);
+
 
 
 	// Skybox interior NOCHE
@@ -487,33 +499,23 @@ int main()
 	facesExteriorNoche.push_back("SkyboxExteriorNoche/left.jpg");
 	facesExteriorNoche.push_back("SkyboxExteriorNoche/top.jpg");
 	facesExteriorNoche.push_back("SkyboxExteriorNoche/bottom.jpg");
-	facesExteriorNoche.push_back("SkyboxExteriorNoche/back.jpg");
 	facesExteriorNoche.push_back("SkyboxExteriorNoche/front.jpg");
+	facesExteriorNoche.push_back("SkyboxExteriorNoche/back.jpg");
 
-	GLuint cubemapTextureExterior = TextureLoading::LoadCubemap(facesExterior);
 	GLuint cubemapTextureExteriorNoche = TextureLoading::LoadCubemap(facesExteriorNoche);
 
-	// Restaurar el binding del cubemap interior
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-
-
-	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 100.0f);
-
-
-	
 
 	// Valores de los KeyFrames para la animacion del visitante
 	VisKF[0] = { 0.0f, 0,   0.0f, 0,  800 };  // Camina al extremo derecho
 	VisKF[1] = { 240.0f, 0,   0.0f, 0,   50 };  // Gira a ver stand (0 a 90 grados)
-	VisKF[2] = { 240.0f, 0,  90.0f, 0,  200 };  
+	VisKF[2] = { 240.0f, 0,  90.0f, 0,  200 };
 	VisKF[3] = { 240.0f, 0,  90.0f, 0,   50 };  //Gira para regresar 
 	VisKF[4] = { 240.0f, 0, 180.0f, 0, 1600 };  //Camina al otro extremo
 	VisKF[5] = { -250.0f, 0, 180.0f, 0,   50 };  // Gira a ver stand 
-	VisKF[6] = { -250.0f, 0, 270.0f, 0,  200 };  
-	VisKF[7] = { -250.0f, 0, 270.0f, 0,   50 };  
+	VisKF[6] = { -250.0f, 0, 270.0f, 0,  200 };
+	VisKF[7] = { -250.0f, 0, 270.0f, 0,   50 };
 	VisKF[8] = { -250.0f, 0, 360.0f, 0,  950 };  //Camina de vuelta al centro
-	VisKF[9] = { 0.0f, 0, 360.0f, 0,    1 };  
+	VisKF[9] = { 0.0f, 0, 360.0f, 0,    1 };
 
 	visResetElements();
 	visPlay = true;
@@ -522,15 +524,15 @@ int main()
 	visInterpolation();
 
 
-	// Valores de los keyframes del brazo robótico
+	// Valores de los keyframes del brazo robï¿½tico
 	BrazoKF[0] = { 0.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,    100 };  // Reposo
-	BrazoKF[1] = { 45.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,    120 };  // Gira base 45°
+	BrazoKF[1] = { 45.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,    120 };  // Gira base 45ï¿½
 	BrazoKF[2] = { 45.0f, 0,   30.0f, 0,   10.0f, 0,    5.0f, 0,    150 };  // Baja a recoger (garra se balancea ligero)
 	BrazoKF[3] = { 45.0f, 0,   30.0f, 0,   10.0f, 0,   -5.0f, 0,     60 };  // Pausa: garra se balancea al otro lado
 	BrazoKF[4] = { 45.0f, 0,  -10.0f, 0,    -30.0f, 0,    0.0f, 0,    120 };  // Levanta 
 	BrazoKF[5] = { -45.0f, 0,  -10.0f, 0,    -30.0f, 0,    5.0f, 0,    180 };  // Gira al otro lado 
 	BrazoKF[6] = { -45.0f, 0,   28.0f, 0,    8.0f, 0,    5.0f, 0,    150 };  // Baja a soltar
-	BrazoKF[7] = { -45.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,    120 };  
+	BrazoKF[7] = { -45.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,    120 };
 	BrazoKF[8] = { 0.0f, 0,    0.0f, 0,    0.0f, 0,    0.0f, 0,      1 };
 
 	brazoResetElements();
@@ -559,6 +561,10 @@ int main()
 
 		// OpenGL options
 		glEnable(GL_DEPTH_TEST);
+
+		// Matrices de camara y proyeccion â€” disponibles en todo el loop
+		glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 1000.0f);
+		glm::mat4 view = camera.GetViewMatrix();
 
 		// Skybox Exterior
 		glm::mat4 viewExt = camera.GetViewMatrix();
@@ -595,7 +601,7 @@ int main()
 
 
 
-		// Directional light (Sol en día / Luna en noche)
+		// Directional light (Sol en dï¿½a / Luna en noche)
 		if (modoDia) {
 			// SOL
 			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), 1.3f, -1.1f, 1.0f);
@@ -647,22 +653,22 @@ int main()
 		// Luces de las lamparas de Oracle
 
 		glm::vec3 oracleSpots[4] = {
-			glm::vec3(-1.3260f, 0.6700f, -3.3580f),  // Lámpara 0 lateral
-			glm::vec3(-1.2140f, 0.6700f, -3.3580f),  // Lámpara 1 lateral
-			glm::vec3(-1.4260f, 0.6650f, -3.1680f),  // Lámpara 2 fondo
-			glm::vec3(-1.4180f, 0.6650f, -3.2800f)   //Lámpara 3 fondo 
+			glm::vec3(-1.3260f, 0.6700f, -3.3580f),  // Lï¿½mpara 0 lateral
+			glm::vec3(-1.2140f, 0.6700f, -3.3580f),  // Lï¿½mpara 1 lateral
+			glm::vec3(-1.4260f, 0.6650f, -3.1680f),  // Lï¿½mpara 2 fondo
+			glm::vec3(-1.4180f, 0.6650f, -3.2800f)   //Lï¿½mpara 3 fondo 
 		};
 
 		for (int i = 0; i < 4; i++) {
 			std::string base = "standSpots[" + std::to_string(i) + "]";
 
-			// Posición
+			// Posiciï¿½n
 			glUniform3f(glGetUniformLocation(lightingShader.Program, (base + ".position").c_str()),
 				oracleSpots[i].x, oracleSpots[i].y, oracleSpots[i].z);
 			glUniform3f(glGetUniformLocation(lightingShader.Program, (base + ".direction").c_str()),
 				0.0f, -1.0f, 0.0f);
 
-			// Ángulos de apertura 
+			// ï¿½ngulos de apertura 
 			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".cutOff").c_str()),
 				glm::cos(glm::radians(8.0f)));
 			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".outerCutOff").c_str()),
@@ -676,7 +682,7 @@ int main()
 			glUniform3f(glGetUniformLocation(lightingShader.Program, (base + ".specular").c_str()),
 				1.0f * spot_intensity, 1.0f * spot_intensity, 1.0f * spot_intensity);
 
-			// Atenuación 
+			// Atenuaciï¿½n 
 			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".constant").c_str()), 1.0f);
 			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".linear").c_str()), 5.0f);
 			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".quadratic").c_str()), 50.0f);
@@ -847,8 +853,7 @@ int main()
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "material.shininess"), 5.0f);
 
 		// Create camera transformations
-		glm::mat4 view;
-		view = camera.GetViewMatrix();
+		// (view y projection ya declarados al inicio del loop)
 
 		// Get the uniform locations
 		GLint modelLoc = glGetUniformLocation(lightingShader.Program, "model");
@@ -864,9 +869,8 @@ int main()
 
 
 
-		//Carga de modelo 
-		// Puente
 		model = glm::mat4(1);
+
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
 		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -880,18 +884,6 @@ int main()
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
 		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-		/*
-		perroCuerpo.Draw(lightingShader);
-		perroPDIU.Draw(lightingShader);
-		perroPDID.Draw(lightingShader);
-		perroPDDU.Draw(lightingShader);
-		perroPDDD.Draw(lightingShader);
-		perroPTIU.Draw(lightingShader);
-		perroPTID.Draw(lightingShader);
-		perroPTDU.Draw(lightingShader);
-		perroPTDD.Draw(lightingShader);*/
-
 
 		stand_pag.Draw(lightingShader);
 		stand_amazon.Draw(lightingShader);
@@ -937,14 +929,14 @@ int main()
 
 
 
-		///////// BRAZO ROBÓTICO //////////
+		///////// BRAZO ROBÃ“TICO //////////
 		glm::mat4 modelBrazo = glm::mat4(1);
 		modelBrazo = glm::translate(modelBrazo, glm::vec3(0.0f, 0.0f, -3.0f));
 		modelBrazo = glm::scale(modelBrazo, glm::vec3(0.005f, 0.005f, 0.005f));
 
 		// Pivotes 
-		glm::vec3 pivotePedestal = glm::vec3(-95.23f, 117.33f, -48.66f); 
-		glm::vec3 pivoteHombro = glm::vec3(-96.10f, 117.48f, -49.04f); 
+		glm::vec3 pivotePedestal = glm::vec3(-95.23f, 117.33f, -48.66f);
+		glm::vec3 pivoteHombro = glm::vec3(-96.10f, 117.48f, -49.04f);
 		glm::vec3 pivoteCodo = glm::vec3(-95.63f, 124.29f, -50.42f);
 		glm::vec3 pivoteGarra = glm::vec3(-95.26f, 122.01f, -45.30f);
 
@@ -983,59 +975,118 @@ int main()
 		mGarra = glm::translate(mGarra, -pivoteGarra);
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mGarra));
 		brazoGarra.Draw(lightingShader);
-
-		/////////////////////////////////////////////////////////////
-
-		/////// VISITANTE CAMINANDO //////////
-	
-		shaderAnimacion.Use();
-		GLint modelLocAnim = glGetUniformLocation(shaderAnimacion.Program, "model");
-		GLint viewLocAnim = glGetUniformLocation(shaderAnimacion.Program, "view");
-		GLint projLocAnim = glGetUniformLocation(shaderAnimacion.Program, "projection");
-		glUniformMatrix4fv(viewLocAnim, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projLocAnim, 1, GL_FALSE, glm::value_ptr(projection));
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "viewPos"), camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "material.specular"), 0.05f, 0.05f, 0.05f);
-		glUniform1f(glGetUniformLocation(shaderAnimacion.Program, "material.shininess"), 32.0f);
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.direction"), -0.2f, -1.0f, -0.3f);
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.ambient"), 0.6f, 0.6f, 0.6f);
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.diffuse"), 0.6f, 0.6f, 0.6f);
-		glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.specular"), 0.3f, 0.3f, 0.3f);
-
-		glm::mat4 modelVis = glm::mat4(1.0f);
-		modelVis = glm::translate(modelVis, glm::vec3(0.0f, 0.0f, -3.0f));
-		modelVis = glm::scale(modelVis, glm::vec3(0.005f, 0.005f, 0.005f));
-		modelVis = glm::translate(modelVis, glm::vec3(visPosX, 0.0f, 0.0f));
-		modelVis = glm::rotate(modelVis, glm::radians(visRotY + 180), glm::vec3(0.0f, 1.0f, 0.0f));
-		glUniformMatrix4fv(modelLocAnim, 1, GL_FALSE, glm::value_ptr(modelVis));
-
-
-
-
-		bool hayDesplazamiento = (std::abs(VisKF[visPlayIndex].visPosXInc) > 0.0001f);
-		bool hayGiro = (std::abs(VisKF[visPlayIndex].visRotYInc) > 0.0001f);
-
-		if (hayDesplazamiento || hayGiro)
+		///////// VISITANTE CAMINANDO //////////
 		{
-			tiempoAnimVisitante += deltaTime * 0.8f;
-			visitante.Draw(shaderAnimacion, tiempoAnimVisitante);
+			shaderAnimacion.Use();
+			GLint modelLocAnim = glGetUniformLocation(shaderAnimacion.Program, "model");
+			GLint viewLocAnim = glGetUniformLocation(shaderAnimacion.Program, "view");
+			GLint projLocAnim = glGetUniformLocation(shaderAnimacion.Program, "projection");
+			glUniformMatrix4fv(viewLocAnim, 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(projLocAnim, 1, GL_FALSE, glm::value_ptr(projection));
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "viewPos"), camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "material.specular"), 0.05f, 0.05f, 0.05f);
+			glUniform1f(glGetUniformLocation(shaderAnimacion.Program, "material.shininess"), 32.0f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.direction"), -0.2f, -1.0f, -0.3f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.ambient"), 0.6f, 0.6f, 0.6f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.diffuse"), 0.6f, 0.6f, 0.6f);
+			glUniform3f(glGetUniformLocation(shaderAnimacion.Program, "light.specular"), 0.3f, 0.3f, 0.3f);
+
+			glm::mat4 modelVis = glm::mat4(1.0f);
+			modelVis = glm::translate(modelVis, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelVis = glm::scale(modelVis, glm::vec3(0.005f, 0.005f, 0.005f));
+			modelVis = glm::translate(modelVis, glm::vec3(visPosX, 0.0f, 0.0f));
+			modelVis = glm::rotate(modelVis, glm::radians(visRotY + 180), glm::vec3(0.0f, 1.0f, 0.0f));
+			glUniformMatrix4fv(modelLocAnim, 1, GL_FALSE, glm::value_ptr(modelVis));
+
+
+
+
+			bool hayDesplazamiento = (std::abs(VisKF[visPlayIndex].visPosXInc) > 0.0001f);
+			bool hayGiro = (std::abs(VisKF[visPlayIndex].visRotYInc) > 0.0001f);
+
+			if (hayDesplazamiento || hayGiro)
+			{
+				tiempoAnimVisitante += deltaTime * 0.8f;
+				visitante.Draw(shaderAnimacion, tiempoAnimVisitante);
+			}
+			else
+			{
+
+				visitante.Draw(shaderAnimacion, poseFijaVisitante);
+			}
+
+
+
+
+			lightingShader.Use();
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+
+
+			// ---- PERRO ROBOT ----
+			shaderAnimacion.Use(); // â† reactivar shaderAnimacion antes de dibujar el perro
+			glUniformMatrix4fv(viewLocAnim, 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(projLocAnim, 1, GL_FALSE, glm::value_ptr(projection));
+			glm::mat4 modelPerro = glm::mat4(1.0f);
+			modelPerro = glm::translate(modelPerro, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelPerro = glm::translate(modelPerro, glm::vec3(-1.12f, 0.52f, 0.31f));
+			modelPerro = glm::scale(modelPerro, glm::vec3(0.0001f, 0.0001f, 0.0001f));
+			glUniformMatrix4fv(modelLocAnim, 1, GL_FALSE, glm::value_ptr(modelPerro));
+			perroRobot.Draw(shaderAnimacion, tiempoPerro);
+
+			//dibujamos logo oracle
+			lightingShader.Use();
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+			glm::vec3 centroOracle(-255.8f, 136.83f, -48.15f); //(oordenadas tomadas de la escena en lender
+			glm::vec3 centroPG(239.0f, 149.88f, -41.31f);
+			glm::vec3 centroAmazon(7.27f, 141.24f, -44.42f);
+
+
+			glm::mat4 modelOracle = glm::mat4(1.0f);
+			modelOracle = glm::translate(modelOracle, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelOracle = glm::scale(modelOracle, glm::vec3(0.005f, 0.005f, 0.005f));
+			modelOracle = glm::translate(modelOracle, centroOracle);          //mueve pivote al centroOracle
+
+			if (playOracle)
+				modelOracle = glm::rotate(modelOracle, tiempoOracle, glm::vec3(0.0f, 1.0f, 0.0f));
+			modelOracle = glm::translate(modelOracle, -centroOracle);         //regresa pivote
+
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelOracle));
+			logoOracle->Draw(lightingShader);
+
+			glm::mat4 modelAmazon = glm::mat4(1.0f);
+			modelAmazon = glm::translate(modelAmazon, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelAmazon = glm::scale(modelAmazon, glm::vec3(0.005f, 0.005f, 0.005f));
+			modelAmazon = glm::translate(modelAmazon, centroAmazon);
+
+			if (playAmazon)
+				modelAmazon = glm::rotate(modelAmazon, tiempoAmazon, glm::vec3(0.0f, 1.0f, 0.0f));
+			modelAmazon = glm::translate(modelAmazon, -centroAmazon);
+
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelAmazon));
+			logoAmazon->Draw(lightingShader);
+
+			glm::mat4 modelPG = glm::mat4(1.0f);
+			modelPG = glm::translate(modelPG, glm::vec3(0.0f, 0.0f, -3.0f));
+			modelPG = glm::scale(modelPG, glm::vec3(0.005f, 0.005f, 0.005f));
+			modelPG = glm::translate(modelPG, centroPG);
+
+			if (playPG)
+				modelPG = glm::rotate(modelPG, tiempoPG, glm::vec3(0.0f, 1.0f, 0.0f));
+			modelPG = glm::translate(modelPG, -centroPG);
+
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelPG));
+			logoPG->Draw(lightingShader);
+
+			lightingShader.Use();
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 		}
-		else
-		{
-			
-			visitante.Draw(shaderAnimacion, poseFijaVisitante);
-		}
-
-		
 
 
-		lightingShader.Use();
-		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	
-
-
-	
 		// Modelos extras
 		model = glm::mat4(1);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
@@ -1050,6 +1101,38 @@ int main()
 		mamp7.Draw(lightingShader);
 		mamp8.Draw(lightingShader);
 		pumagua.Draw(lightingShader);
+
+		
+		//modelo de lamparas
+		glm::mat4 modelLampara = glm::mat4(1.0f);
+		modelLampara = glm::translate(modelLampara, glm::vec3(0.0f, 0.0f, -3.0f));
+		modelLampara = glm::scale(modelLampara, glm::vec3(0.005f, 0.005f, 0.005f));
+		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"),
+			1, GL_FALSE, glm::value_ptr(modelLampara));
+		lampara.Draw(lightingShader);
+
+		//CAMARA DE SEGURIDAD
+		glm::vec3 centroCamCabeza(-202.53f, 156.96f, -65.422f);
+
+		// Base fija
+		glm::mat4 modelCamBase = glm::mat4(1.0f);
+		modelCamBase = glm::translate(modelCamBase, glm::vec3(0.0f, 0.0f, -3.0f));
+		modelCamBase = glm::scale(modelCamBase, glm::vec3(0.005f, 0.005f, 0.005f));
+		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"),
+			1, GL_FALSE, glm::value_ptr(modelCamBase));
+		camBase.Draw(lightingShader);
+
+		// Cabeza giratoria
+		glm::mat4 modelCamCabeza = glm::mat4(1.0f);
+		modelCamCabeza = glm::translate(modelCamCabeza, glm::vec3(0.0f, 0.0f, -3.0f));
+		modelCamCabeza = glm::translate(modelCamCabeza, centroCamCabeza * 0.005f);     // pivot en espacio OpenGL
+		modelCamCabeza = glm::rotate(modelCamCabeza, glm::radians(rotCamera), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelCamCabeza = glm::translate(modelCamCabeza, -centroCamCabeza * 0.005f);    // regresa pivot
+		modelCamCabeza = glm::scale(modelCamCabeza, glm::vec3(0.005f, 0.005f, 0.005f));
+		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"),
+			1, GL_FALSE, glm::value_ptr(modelCamCabeza));
+		camCabeza.Draw(lightingShader);
+
 
 
 		// Dibujo del sol (solo modo dia)
@@ -1098,7 +1181,7 @@ int main()
 		// Modelo para posicionar y escalar la caja alrededor del puente
 		model = glm::mat4(1);
 		model = glm::translate(model, glm::vec3(-0.0413f, 0.6800f, -2.9475f));// Centro del puente
-		model = glm::scale(model, glm::vec3(1.4619f, 0.1850f, 0.4875f));    // Imagenes al tamaño del puente
+		model = glm::scale(model, glm::vec3(1.4619f, 0.1850f, 0.4875f));    // Imagenes al tamaï¿½o del puente
 		glUniformMatrix4fv(glGetUniformLocation(skyboxshader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
 		glBindVertexArray(skyboxVAO);
@@ -1135,7 +1218,7 @@ int main()
 // Moves/alters the camera positions based on user input
 void DoMovement()
 {
-	
+
 
 	// Camera controls
 	if (keys[GLFW_KEY_W] || keys[GLFW_KEY_UP])
@@ -1193,7 +1276,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 			keys[key] = false;
 		}
 	}
-	
+
 	// Tecla para controlar la animacion del presentador 
 	if (keys[GLFW_KEY_E])
 	{
@@ -1206,13 +1289,43 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		}
 	}
 
-	// Pausar/reanudar animación del brazo robótico
+	// Pausar/reanudar animaciï¿½n del brazo robï¿½tico
 	if (keys[GLFW_KEY_B])
 	{
 		brazoPlay = !brazoPlay;
 	}
 
-	
+
+	//tecla 1 para controlar la rotaciÃ³n del logo de oracle
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS)
+	{
+		playOracle = !playOracle;
+		if (!playOracle) tiempoOracle = 0.0f; // Reinicia si se apaga
+		printf("Animacion Oracle: %s\n", playOracle ? "ON" : "OFF");
+	}
+	//tecla 2 para controlar la rotaciÃ³nb del logo de amazon
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS)
+	{
+		playAmazon = !playAmazon;
+		if (!playAmazon) tiempoAmazon = 0.0f;
+		printf("Animacion Amazon: %s\n", playAmazon ? "ON" : "OFF");
+	}
+
+	//tecla 3 para controlar la rotaciÃ³nb del logo de P&G
+	if (key == GLFW_KEY_3 && action == GLFW_PRESS)
+	{
+		playPG = !playPG;
+		if (!playPG) tiempoPG = 0.0f;
+		printf("Animacion P&G: %s\n", playPG ? "ON" : "OFF");
+	}
+
+	// Tecla P para controlar la animacion del perro robot
+	if (key == GLFW_KEY_P && action == GLFW_PRESS)
+	{
+		playPerro = !playPerro;
+		if (!playPerro) tiempoPerro = 0.0f;
+		printf("Animacion Perro Robot: %s\n", playPerro ? "ON" : "OFF");
+	}
 
 	if (keys[GLFW_KEY_SPACE])
 	{
@@ -1233,17 +1346,17 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 
 }
 void Animation() {
-	// ANIMACIÓN PRESENTADOR 
+	// ANIMACIï¿½N PRESENTADOR 
 	if (animExpositor)
 	{
 		expositorTiempo += deltaTime;
-		expositorRotMano = 25.0f * sin(expositorTiempo * 5.0f );
+		expositorRotMano = 25.0f * sin(expositorTiempo * 5.0f);
 		expositorRotCabeza = 15.0f * sin(expositorTiempo * 1.5f);
 		expositorRotAntebrazo = 20.0f * sin(expositorTiempo * 5.0f);
 	}
 
-	
-	// ANIMACIÓN VISITANTE POR KEYFRAMES
+
+	// ANIMACIï¿½N VISITANTE POR KEYFRAMES
 	if (visPlay) {
 		if (vis_i_curr_steps >= vis_i_max_steps) {
 			visPlayIndex++;
@@ -1267,8 +1380,22 @@ void Animation() {
 		}
 	}
 
+	//ANIMACIONES DE ROTACIï¿½N DE LOGOS
+	if (playOracle) {
+		tiempoOracle += deltaTime;
+	}
+	if (playAmazon) {
+		tiempoAmazon += deltaTime;
+	}
+	if (playPG) {
+		tiempoPG += deltaTime;
+	}
+	if (playPerro) {
+		tiempoPerro += deltaTime;
+	}
 
-	// ANIMACIÓN BRAZO ROBÓTICO POR KEYFRAMES
+
+	// ANIMACIÃ“N BRAZO ROBÃ“TICO POR KEYFRAMES
 	if (brazoPlay) {
 		if (brazo_i_curr_steps >= brazo_i_max_steps) {
 			brazoPlayIndex++;
@@ -1291,6 +1418,10 @@ void Animation() {
 			brazo_i_curr_steps++;
 		}
 	}
+
+	// Camara de seguridad â€” gira automaticamente de lado a lado cada 10 segundos
+	tiempoCamera += deltaTime;
+	rotCamera = 45.0f * sin(tiempoCamera * (glm::pi<float>() / 10.0f));
 
 }
 
