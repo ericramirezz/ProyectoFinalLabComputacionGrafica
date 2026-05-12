@@ -331,6 +331,11 @@ int main()
 	//pumagua
 	Model pumagua((char*)"Models/extras/pumagua/pumagua.obj");
 
+	//Luna
+	Model luna((char*)"Models/extras/luna/luna.obj");
+
+	//Sol
+	Model sol((char*)"Models/extras/sol/sol.obj");
 
 
 	// Modelo del visitante con animacion
@@ -593,17 +598,18 @@ int main()
 		// Directional light (Sol en día / Luna en noche)
 		if (modoDia) {
 			// SOL
-			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), -0.3f, -1.0f, -0.3f);
+			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), 1.3f, -1.1f, 1.0f);
 			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), 0.5f, 0.45f, 0.4f);
-			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 1.0f, 0.95f, 0.85f); // tono cálido
+			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 1.0f, 0.95f, 0.85f);
 			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.6f, 0.6f, 0.5f);
+		
 		}
 		else {
-			// LUNA
-			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), 0.3f, -1.0f, 0.3f);
-			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), 0.10f, 0.12f, 0.20f);
-			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.25f, 0.30f, 0.50f); // tono azul-lunar
-			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.15f, 0.15f, 0.25f);
+			// LUNA 
+			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), -1.3f, -1.1f, 1.0f);
+			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), 0.08f, 0.10f, 0.18f);
+			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.20f, 0.25f, 0.40f);
+			glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.30f, 0.32f, 0.45f);
 		}
 
 		glm::vec3 lightColor;
@@ -1046,6 +1052,25 @@ int main()
 		pumagua.Draw(lightingShader);
 
 
+		// Dibujo del sol (solo modo dia)
+		if (modoDia) {
+			model = glm::mat4(1);
+			model = glm::translate(model, glm::vec3(-1.3f, 1.7f, -4.0f));  
+			model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			sol.Draw(lightingShader);
+		}
+
+
+		// Dibujo de la luna (solo modo  noche)
+		if (!modoDia) {
+			model = glm::mat4(1);
+			model = glm::translate(model, glm::vec3(1.3f, 1.7f, -4.0f));  // arriba a la derecha
+			model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			luna.Draw(lightingShader);
+		}
+
 		// Also draw the lamp object, again binding the appropriate shader
 		lampShader.Use();
 		// Get location objects for the matrices on the lamp shader (these could be different on a different shader)
@@ -1056,15 +1081,7 @@ int main()
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		
 
-		//// Set matrices
-		//glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		//glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-		//model = glm::mat4(1);
-		//model = glm::translate(model, lightPos);
-		//model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		
 		glBindVertexArray(0);
 
