@@ -653,10 +653,10 @@ int main()
 		// Luces de las lamparas de Oracle
 
 		glm::vec3 oracleSpots[4] = {
-			glm::vec3(-1.3260f, 0.6700f, -3.3580f),  // L�mpara 0 lateral
-			glm::vec3(-1.2140f, 0.6700f, -3.3580f),  // L�mpara 1 lateral
-			glm::vec3(-1.4260f, 0.6650f, -3.1680f),  // L�mpara 2 fondo
-			glm::vec3(-1.4180f, 0.6650f, -3.2800f)   //L�mpara 3 fondo 
+			glm::vec3(-1.3260f, 0.6700f, -3.3580f),  // Lampara 0 lateral
+			glm::vec3(-1.2140f, 0.6700f, -3.3580f),  // Lampara 1 lateral
+			glm::vec3(-1.4260f, 0.6650f, -3.1680f),  // Lampara 2 fondo
+			glm::vec3(-1.4180f, 0.6650f, -3.2800f)   //Lampara 3 fondo 
 		};
 
 		for (int i = 0; i < 4; i++) {
@@ -847,6 +847,45 @@ int main()
 			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".quadratic").c_str()), 50.0f);
 		}
 
+
+
+		// Lamparas de techo 
+
+		glm::vec3 lamparasTecho[4] = {
+			glm::vec3(-1.2815f, 0.7708f, -2.9374f),  
+			glm::vec3(-0.3998f, 0.7625f, -2.9370f),  
+			glm::vec3(0.3810f, 0.7625f, -2.9370f),  
+			glm::vec3(1.1759f, 0.7625f, -2.9370f)   
+		};
+
+		for (int i = 0; i < 4; i++) {
+			std::string base = "standSpots[" + std::to_string(i + 24) + "]";
+
+			// Posicion de la lampara
+			glUniform3f(glGetUniformLocation(lightingShader.Program, (base + ".position").c_str()),
+				lamparasTecho[i].x, lamparasTecho[i].y, lamparasTecho[i].z);
+			glUniform3f(glGetUniformLocation(lightingShader.Program, (base + ".direction").c_str()),
+				0.0f, -1.0f, 0.0f);
+
+			
+			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".cutOff").c_str()),
+				glm::cos(glm::radians(20.0f)));
+			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".outerCutOff").c_str()),
+				glm::cos(glm::radians(35.0f)));
+
+			// Color CALIDO 
+			glUniform3f(glGetUniformLocation(lightingShader.Program, (base + ".ambient").c_str()),
+				0.05f * spot_intensity, 0.04f * spot_intensity, 0.03f * spot_intensity);
+			glUniform3f(glGetUniformLocation(lightingShader.Program, (base + ".diffuse").c_str()),
+				1.5f * spot_intensity, 1.14f * spot_intensity, 0.75f * spot_intensity);
+			glUniform3f(glGetUniformLocation(lightingShader.Program, (base + ".specular").c_str()),
+				1.0f * spot_intensity, 0.85f * spot_intensity, 0.65f * spot_intensity);
+
+			// Atenuacion suave 
+			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".constant").c_str()), 1.0f);
+			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".linear").c_str()), 5.0f);
+			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".quadratic").c_str()), 50.0f);
+		}
 
 
 		// Set material properties
@@ -1163,6 +1202,8 @@ int main()
 
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+		
 
 
 		
