@@ -805,10 +805,13 @@ int main()
 
 
 			// ---- PERRO ROBOT ----
+			shaderAnimacion.Use(); // ← reactivar shaderAnimacion antes de dibujar el perro
+			glUniformMatrix4fv(viewLocAnim, 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(projLocAnim, 1, GL_FALSE, glm::value_ptr(projection));
 			glm::mat4 modelPerro = glm::mat4(1.0f);
 			modelPerro = glm::translate(modelPerro, glm::vec3(0.0f, 0.0f, -3.0f));
 			modelPerro = glm::translate(modelPerro, glm::vec3(-1.12f, 0.52f, 0.31f));
-			modelPerro = glm::scale(modelPerro, glm::vec3(0.00001f, 0.00001f, 0.00001f));
+			modelPerro = glm::scale(modelPerro, glm::vec3(0.0001f, 0.0001f, 0.0001f));
 			glUniformMatrix4fv(modelLocAnim, 1, GL_FALSE, glm::value_ptr(modelPerro));
 			perroRobot.Draw(shaderAnimacion, tiempoPerro);
 
@@ -879,22 +882,14 @@ int main()
 		mamp8.Draw(lightingShader);
 		pumagua.Draw(lightingShader);
 
-		// ---- 4 LAMPARAS DEL TECHO ----
-		glm::vec3 posicionesLampara[] = {
-			glm::vec3(-452.45f, 295.96f,  16.30f),
-			glm::vec3(-134.94f, 297.21f,  16.30f),
-			glm::vec3(147.70f, 297.21f,  16.30f),
-			glm::vec3(427.34f, 297.21f,  16.30f)
-		};
-		for (int i = 0; i < 4; i++) {
-			glm::mat4 modelLampara = glm::mat4(1.0f);
-			modelLampara = glm::translate(modelLampara, glm::vec3(0.0f, 0.0f, -3.0f));
-			modelLampara = glm::scale(modelLampara, glm::vec3(0.005f, 0.005f, 0.005f));
-			modelLampara = glm::translate(modelLampara, posicionesLampara[i]);
-			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"),
-				1, GL_FALSE, glm::value_ptr(modelLampara));
-			lampara.Draw(lightingShader);
-		}
+		
+		//modelo de lamparas
+		glm::mat4 modelLampara = glm::mat4(1.0f);
+		modelLampara = glm::translate(modelLampara, glm::vec3(0.0f, 0.0f, -3.0f));
+		modelLampara = glm::scale(modelLampara, glm::vec3(0.005f, 0.005f, 0.005f));
+		glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"),
+			1, GL_FALSE, glm::value_ptr(modelLampara));
+		lampara.Draw(lightingShader);
 
 		//CAMARA DE SEGURIDAD
 		glm::vec3 centroCamCabeza(-202.53f, 156.96f, -65.422f);
