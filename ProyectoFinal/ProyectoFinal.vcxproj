@@ -37,8 +37,6 @@
     <None Include="Shader\lamp.vs" />
     <None Include="Shader\lighting.frag" />
     <None Include="Shader\lighting.vs" />
-    <None Include="Shader\modelLoading.frag" />
-    <None Include="Shader\modelLoading.vs" />
     <None Include="Shader\SkyBox.frag" />
     <None Include="Shader\SkyBox.vs" />
   </ItemGroup>
