@@ -31,6 +31,8 @@
   <ItemGroup>
     <None Include="Shader\anim.frag" />
     <None Include="Shader\anim.vs" />
+    <None Include="Shader\emissive.frag" />
+    <None Include="Shader\emissive.vs" />
     <None Include="Shader\lamp.frag" />
     <None Include="Shader\lamp.vs" />
     <None Include="Shader\lighting.frag" />
