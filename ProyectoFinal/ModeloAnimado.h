@@ -36,8 +36,8 @@ public:
 		this->directorio = string(ruta);
 		this->directorio = this->directorio.substr(0, this->directorio.find_last_of('/'));
 		this->procesarNodo(this->escena->mRootNode, this->escena);
-		printf("Modelo animado cargado: %s\n", ruta);
-		printf("  Mallas: %d, Huesos: %d, Animaciones: %d\n", (int)this->mallas.size(), (int)this->numHuesos, (int)this->escena->mNumAnimations);
+		//printf("Modelo animado cargado: %s\n", ruta);
+		//printf("  Mallas: %d, Huesos: %d, Animaciones: %d\n", (int)this->mallas.size(), (int)this->numHuesos, (int)this->escena->mNumAnimations);
 	}
 
 	void Draw(Shader shader, GLfloat tiempoEnSegundos)
