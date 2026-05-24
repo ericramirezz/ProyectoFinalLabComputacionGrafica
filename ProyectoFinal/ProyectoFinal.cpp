@@ -211,6 +211,9 @@ bool playPerro = false;
 float tiempoCamera = 0.0f;
 float rotCamera = 0.0f;
 
+// Variables para los folletos volando
+float tiempoFolleto = 0.0f;
+const int NUM_FOLLETOS = 2;
 
 // Deltatime
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
@@ -331,6 +334,9 @@ int main()
 	//camara de seguridad
 	Model camBase((char*)"Models/extras/camara/cam_base.obj");
 	Model camCabeza((char*)"Models/extras/camara/cam_cabeza.obj");
+
+	//modelo del folleto
+	Model folletoModel((char*)"Models/folleto/hojaPapel.obj");
 
 	//modelos con animacion
 	ModeloAnimado visitante((GLchar*)"Models/Visitante/visitante.fbx");
@@ -869,7 +875,7 @@ int main()
 
 
 		//set material properties
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "material.shininess"), 5.0f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "material.shininess"), 32.0f);
 
 		// Get the uniform locations
 		GLint modelLoc = glGetUniformLocation(lightingShader.Program, "model");
@@ -1139,6 +1145,79 @@ int main()
 			1, GL_FALSE, glm::value_ptr(modelCamCabeza));
 		camCabeza.Draw(lightingShader);
 
+		//Folletos volando
+		tiempoFolleto += deltaTime;
+
+		//Pila de folletos sobre la mesa del stand P&G
+		//varios folletos apilados 
+		float pilaPosX = 1.15f;   //X del stand P&G
+		float pilaPosY = 0.539f;  //altura de la mesa
+		float pilaPosZ = -3.25f;  //Z del stand P&G
+
+		for (int k = 0; k < 8; k++) {
+			glm::mat4 modelPila = glm::mat4(1.0f);
+			modelPila = glm::translate(modelPila, glm::vec3(
+				pilaPosX + (k % 3) * 0.015f - 0.015f,           //ligero desplazamiento en X
+				pilaPosY + k * 0.001f,                          //cada folleto un poco mas arriba
+				pilaPosZ + ((k * 7) % 5) * 0.008f - 0.02f       //ligero desplazamiento en Z
+			));
+			modelPila = glm::rotate(modelPila, glm::radians((float)(k * 13)), glm::vec3(0.0f, 1.0f, 0.0f)); //rotaciones desordenadas
+			modelPila = glm::scale(modelPila, glm::vec3(0.0008f, 0.0008f, 0.0008f));
+
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelPila));
+			folletoModel.Draw(lightingShader);
+		}
+
+		//Folletos saliendo desde el stand P&G
+		for (int k = 0; k < NUM_FOLLETOS; k++) {
+			float t = tiempoFolleto + k * 4.0f;
+			float ciclo = fmod(t, 8.0f);
+
+			
+			
+			float fasevuelo = 4.0f;
+			float progreso;
+			bool enReposo = false;
+
+			if (ciclo < fasevuelo) {
+				progreso = ciclo / fasevuelo;       
+			}
+			else {
+				progreso = 1.0f;                   
+				enReposo = true;
+			}
+
+			//trayectoria: salen de la pila, vuelan hacia el frente y caen al piso
+			float posX = pilaPosX + sin(progreso * 3.1416f) * 0.15f;
+			float posY = pilaPosY + sin(progreso * 3.1416f) * 0.25f - progreso * 0.0350f;
+			float posZ = pilaPosZ + progreso * 0.55f;
+
+			//rotaciones: animadas mientras vuela, congeladas al aterrizar
+			float rotY, rotZ, rotX;
+
+			if (enReposo) {
+				//pose fija en el piso: plano y con leve inclinacion para que se vea natural
+				rotY = (float)(k * 37);              //cada folleto cae con orientacion distinta
+				rotZ = (float)((k * 13) % 20 - 10);  //leve inclinacion lateral
+				rotX = 0.0f;                         //plano sobre el piso
+			}
+			else {
+				rotY = t * 60.0f;
+				rotZ = sin(t * 1.5f) * 25.0f;
+				rotX = cos(t * 1.2f) * 20.0f;
+			}
+
+			glm::mat4 modelFolleto = glm::mat4(1.0f);
+			modelFolleto = glm::translate(modelFolleto, glm::vec3(posX, posY, posZ));
+			modelFolleto = glm::rotate(modelFolleto, glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f));
+			modelFolleto = glm::rotate(modelFolleto, glm::radians(rotX), glm::vec3(1.0f, 0.0f, 0.0f));
+			modelFolleto = glm::rotate(modelFolleto, glm::radians(rotZ), glm::vec3(0.0f, 0.0f, 1.0f));
+			modelFolleto = glm::scale(modelFolleto, glm::vec3(0.001f, 0.0010f, 0.001f));
+
+			glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelFolleto));
+			folletoModel.Draw(lightingShader);
+		}
+
 
 		//dibujamos los modelos del sol y la luna usando el shader de emissive para que brillen por si mismos
 		//dibujo del sol (solo modo dia)
@@ -1339,6 +1418,15 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		playPerro = !playPerro;
 		if (!playPerro) tiempoPerro = 0.0f;
 		printf("Animacion Perro Robot: %s\n", playPerro ? "ON" : "OFF");
+	}
+
+	//Tecla F para controlar la animacion de los folletos volando
+	
+	
+	if (key == GLFW_KEY_F && action == GLFW_PRESS)
+	{
+		tiempoFolleto = 0.0f;
+		printf("Animacion Folletos: REINICIADA\n");
 	}
 
 }
