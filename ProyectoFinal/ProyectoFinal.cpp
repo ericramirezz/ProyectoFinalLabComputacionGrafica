@@ -841,10 +841,10 @@ int main()
 
 		//lamparas de techo — Point Lights
 		glm::vec3 lamparasTecho[4] = {
-			glm::vec3(-1.2815f, 0.620f, -2.9374f),
-			glm::vec3(-0.3998f, 0.612f, -2.9370f),
-			glm::vec3(0.3810f, 0.612f, -2.9370f),
-			glm::vec3(1.1759f, 0.612f, -2.9370f)
+			glm::vec3(-1.2815f, 0.35f, -2.9374f),
+			glm::vec3(-0.3998f, 0.35f, -2.9370f),
+			glm::vec3(0.3810f, 0.35f, -2.9370f),
+			glm::vec3(1.1759f, 0.35f, -2.9370f)
 		};
 
 		for (int i = 0; i < 4; i++) {
@@ -863,7 +863,7 @@ int main()
 
 			//atenuacion mas agresiva — sombras mas marcadas en stands
 			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".constant").c_str()), 1.0f);
-			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".linear").c_str()), 1.4f);
+			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".linear").c_str()), 2.02f);
 			glUniform1f(glGetUniformLocation(lightingShader.Program, (base + ".quadratic").c_str()), 3.6f);
 		}
 
